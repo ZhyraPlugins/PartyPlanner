@@ -30,4 +30,10 @@ namespace PartyPlanner.Models
         [JsonProperty("events")]
         public List<EventType> Events { get; set; }
     }
+
+    public class ActiveEventsResponseType
+    {
+        [JsonProperty("activeEvents")]
+        public List<EventType> ActiveEvents { get; set; }
+    }
 }

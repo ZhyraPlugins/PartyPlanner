@@ -64,7 +64,7 @@ namespace PartyPlanner
             
         }
 
-        public async Task<Models.EventsResponseType> GetEvents()
+        public async Task<List<Models.EventType>> GetEvents()
         {
             var heroRequest = new GraphQLRequest
             {
@@ -92,10 +92,44 @@ namespace PartyPlanner
             {
                 // Remove emojis.
                 string result = Regex.Replace(ev.Description, @"\p{Cs}", "");
-                ev.Description = result;
+                ev.Description = result.Trim();
             }
 
-            return res.Data;
+            return res.Data.Events;
+        }
+
+        public async Task<List<Models.EventType>> GetActiveEvents()
+        {
+            var heroRequest = new GraphQLRequest
+            {
+                Query = @"
+                {
+                      activeEvents(game: ""final-fantasy-xiv"", sortBy: STARTS_AT) {
+                        title,
+                        locationId,
+                        ageRating,
+                        attendeeCount,
+                        startsAt,
+                        endsAt,
+                        launchUrl,
+                        location,
+                        tags,
+                        description(type: PLAIN_TEXT)
+                     }
+                }"
+            };
+
+            var res = await graphQL.SendQueryAsync<Models.ActiveEventsResponseType>(heroRequest);
+            var data = res.Data;
+
+            foreach (var ev in data.ActiveEvents)
+            {
+                // Remove emojis.
+                string result = Regex.Replace(ev.Description, @"\p{Cs}", "");
+                ev.Description = result.Trim();
+            }
+
+            return res.Data.ActiveEvents;
         }
 
         public Models.ServerType GetServerType(int id)
