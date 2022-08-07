@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Authors>Zhyra Nyoh</Authors>
+		<Authors>Zhyra</Authors>
 		<Company></Company>
 		<Version>1.0.1</Version>
 		<Description>PartyVerse.app, directly on your client!</Description>
@@ -63,7 +63,7 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<None Update="images\icon.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 

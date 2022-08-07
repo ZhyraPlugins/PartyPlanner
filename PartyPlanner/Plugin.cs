@@ -37,11 +37,12 @@ namespace PartyPlanner
 
             CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "A useful message to display in /xlhelp"
+                HelpMessage = "Display a list of community events sourced from partyverse.app"
             });
 
             PluginInterface.UiBuilder.Draw += DrawUI;
-            PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+            //PluginInterface.UiBuilder.Loa;
+            //PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
         }
 
         public void Dispose()
@@ -62,9 +63,11 @@ namespace PartyPlanner
             this.PluginUi.Draw();
         }
 
+        /*
         private void DrawConfigUI()
         {
             //this.PluginUi.SettingsVisible = true;
         }
+        */
     }
 }
