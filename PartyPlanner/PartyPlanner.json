@@ -1,10 +1,10 @@
 {
-  "Author": "Zhyra Nyoh",
+  "Author": "Zhyra",
   "Name": "PartyPlanner",
   "Punchline": "PartyVerse.app, directly on your client!",
   "Description": "PartyVerse.app, directly on your client!",
-  "RepoUrl": "https://github.com/edg-l/PartyPlanner",
-  "IconUrl": "https://raw.githubusercontent.com/edg-l/PartyPlanner/main/PartyPlanner/images/icon.png",
+  "RepoUrl": "https://github.com/ZhyraPlugins/PartyPlanner",
+  "IconUrl": "https://raw.githubusercontent.com/ZhyraPlugins/PartyPlanner/master/PartyPlanner/images/icon.png",
   "InternalName": "PartyPlanner",
   "DalamudApiLevel": 6,
   "ApplicableVersion": "any",
