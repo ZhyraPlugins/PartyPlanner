@@ -120,6 +120,9 @@ namespace PartyPlanner
                     {
                         foreach (var ev in this.partyVerseEvents)
                         {
+                            if(ev.LocationId < 0)
+                                continue;
+
                             var serverType = partyVerseApi.GetServerType(ev.LocationId);
 
                             if (serverType.DataCenter != dataCenter.Id)
