@@ -81,6 +81,8 @@ namespace PartyPlanner
                         location,
                         tags,
                         description(type: PLAIN_TEXT)
+                        attendeeCount
+                        attachments
                      }
                 }"
             };
@@ -91,8 +93,11 @@ namespace PartyPlanner
             foreach(var ev in data.Events)
             {
                 // Remove emojis.
-                string result = Regex.Replace(ev.Description, @"\p{Cs}", "");
-                ev.Description = result.Trim();
+                string description = Regex.Replace(ev.Description, @"[^\u0000-\u007F]+", string.Empty);
+                ev.Description = description.Trim();
+
+                string title = Regex.Replace(ev.Title, @"[^\u0000-\u007F]+", string.Empty);
+                ev.Title = title.Trim();
             }
 
             return res.Data.Events;
@@ -115,6 +120,8 @@ namespace PartyPlanner
                         location,
                         tags,
                         description(type: PLAIN_TEXT)
+                        attendeeCount
+                        attachments
                      }
                 }"
             };
@@ -125,7 +132,7 @@ namespace PartyPlanner
             foreach (var ev in data.ActiveEvents)
             {
                 // Remove emojis.
-                string result = Regex.Replace(ev.Description, @"\p{Cs}", "");
+                string result = Regex.Replace(ev.Description, @"[^\u0000-\u007F]+", string.Empty);
                 ev.Description = result.Trim();
             }
 

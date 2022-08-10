@@ -23,6 +23,10 @@ namespace PartyPlanner.Models
         public DateTime EndsAt { get; set; }
         [JsonProperty("location")]
         public string Location { get; set; }
+        [JsonProperty("attendeeCount")]
+        public int AttendeeCount { get; set; }
+        [JsonProperty("attachments")]
+        public string[] Attachments { get; set; }
     }
 
     public class EventsResponseType

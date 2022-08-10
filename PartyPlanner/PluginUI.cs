@@ -3,6 +3,7 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -15,8 +16,8 @@ namespace PartyPlanner
     {
         private Configuration configuration;
         private PartyVerseApi partyVerseApi { get; init; }
-        private List<Models.EventType> partyVerseEvents = new();
-        private List<Models.EventType> partyVerseActiveEvents = new();
+        private readonly List<Models.EventType> partyVerseEvents = new(50);
+        private string windowTitle;
 
         // this extra bool exists for ImGui, since you can't ref a property
         private bool visible = false;
@@ -38,6 +39,11 @@ namespace PartyPlanner
         {
             this.configuration = configuration;
             this.partyVerseApi = new PartyVerseApi();
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            string version = fvi.FileVersion!;
+            windowTitle = string.Format("PartyPlanner v{0}", version);
 
             Task.Run(async () =>
             {
@@ -65,7 +71,7 @@ namespace PartyPlanner
             }
 
             ImGui.SetNextWindowSize(new Vector2(1000, 500), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("PartyPlanner", ref this.visible, ImGuiWindowFlags.None))
+            if (ImGui.Begin(windowTitle, ref this.visible, ImGuiWindowFlags.None))
             {
                 if (ImGui.Button("Reload Events"))
                 {
@@ -79,23 +85,29 @@ namespace PartyPlanner
 
                 ImGui.Spacing();
 
-                ImGui.BeginTabBar("region_tab_bar");
-
-                foreach (var location in PartyVerseApi.RegionList)
+                if (partyVerseEvents == null || partyVerseEvents.Count == 0)
                 {
-                    if (ImGui.BeginTabItem(location.ToUpper()))
+                    ImGui.Text("Loading events...");
+                }
+                else
+                {
+                    ImGui.BeginTabBar("region_tab_bar");
+
+                    foreach (var location in PartyVerseApi.RegionList)
                     {
-                        ImGui.BeginTabBar("datacenters_tab_bar");
-                        foreach (var datacenter in this.partyVerseApi.DataCenters)
+                        if (ImGui.BeginTabItem(location.ToUpper()))
                         {
-                            if (datacenter.Value.Location == location)
-                                DrawDataCenter(datacenter.Value);
+                            ImGui.BeginTabBar("datacenters_tab_bar");
+                            foreach (var datacenter in this.partyVerseApi.DataCenters)
+                            {
+                                if (datacenter.Value.Location == location)
+                                    DrawDataCenter(datacenter.Value);
+                            }
+                            ImGui.EndTabBar();
+                            ImGui.EndTabItem();
                         }
-                        ImGui.EndTabBar();
-                        ImGui.EndTabItem();
                     }
                 }
-
             }
             ImGui.End();
         }
@@ -120,7 +132,7 @@ namespace PartyPlanner
                     {
                         foreach (var ev in this.partyVerseEvents)
                         {
-                            if(ev.LocationId < 0)
+                            if (ev.LocationId < 0)
                                 continue;
 
                             var serverType = partyVerseApi.GetServerType(ev.LocationId);
@@ -141,15 +153,19 @@ namespace PartyPlanner
         public void DrawEventRow(Models.EventType ev, Models.ServerType serverType)
         {
             ImGui.TableNextColumn();
-            if (ImGui.Selectable(ev.Title))
+
+            ImGui.Spacing();
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.0742f, 0.530f, 0.150f, 1.0f));
+            if (ImGui.Button(ev.Title))
             {
                 this.eventDetails = ev;
                 EventDetailsOpen = true;
             }
+            ImGui.PopStyleColor();
 
             string description = ev.Description;
 
-            if(description.Length > 500)
+            if (description.Length > 500)
                 description = description.Substring(0, 200) + "...";
 
             ImGui.TableNextColumn();
