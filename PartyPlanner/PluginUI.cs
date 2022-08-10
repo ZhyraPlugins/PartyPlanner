@@ -147,10 +147,15 @@ namespace PartyPlanner
                 EventDetailsOpen = true;
             }
 
+            string description = ev.Description;
+
+            if(description.Length > 500)
+                description = description.Substring(0, 200) + "...";
+
             ImGui.TableNextColumn();
             ImGui.Text(string.Format("[{0}] {1}", serverType.Name, ev.Location));
             ImGui.TableNextColumn();
-            ImGui.TextWrapped(ev.Description);
+            ImGui.TextWrapped(description);
             ImGui.TableNextColumn();
             ImGui.Text(ev.StartsAt.ToString());
             ImGui.TableNextColumn();
