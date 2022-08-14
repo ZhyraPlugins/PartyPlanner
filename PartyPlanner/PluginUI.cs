@@ -169,7 +169,19 @@ namespace PartyPlanner
                 description = description.Substring(0, 200) + "...";
 
             ImGui.TableNextColumn();
-            ImGui.Text(string.Format("[{0}] {1}", serverType.Name, ev.Location));
+            var location = string.Format("[{0}] {1}", serverType.Name, ev.Location);
+            if (ImGui.Selectable(location))
+            {
+                ImGui.SetClipboardText(location);
+            }
+
+            if(ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.SetTooltip("Click to copy");
+                ImGui.EndTooltip();
+            }
+
             ImGui.TableNextColumn();
             ImGui.TextWrapped(description);
             ImGui.TableNextColumn();
