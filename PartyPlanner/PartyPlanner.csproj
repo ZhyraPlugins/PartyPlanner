@@ -28,6 +28,7 @@
 		<PackageReference Include="DalamudPackager" Version="2.1.7" />
 		<PackageReference Include="GraphQL.Client" Version="5.1.0" />
 		<PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="5.1.0" />
+		<PackageReference Include="Humanizer.Core" Version="2.14.1" />
 		<Reference Include="FFXIVClientStructs">
 			<HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
 			<Private>false</Private>

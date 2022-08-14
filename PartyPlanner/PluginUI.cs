@@ -1,4 +1,5 @@
 ﻿using Dalamud.Logging;
+using Humanizer;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -166,7 +167,7 @@ namespace PartyPlanner
             string description = ev.Description;
 
             if (description.Length > 500)
-                description = description.Substring(0, 200) + "...";
+                description = description[..200] + "...";
 
             ImGui.TableNextColumn();
             var location = string.Format("[{0}] {1}", serverType.Name, ev.Location);
@@ -185,9 +186,21 @@ namespace PartyPlanner
             ImGui.TableNextColumn();
             ImGui.TextWrapped(description);
             ImGui.TableNextColumn();
-            ImGui.Text(ev.StartsAt.ToString());
+            ImGui.Text(ev.StartsAt.Humanize());
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.SetTooltip(ev.StartsAt.ToString());
+                ImGui.EndTooltip();
+            }
             ImGui.TableNextColumn();
-            ImGui.Text(ev.EndsAt.ToString());
+            ImGui.Text(ev.EndsAt.Humanize());
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.SetTooltip(ev.EndsAt.ToString());
+                ImGui.EndTooltip();
+            }
             ImGui.TableNextRow();
         }
 
