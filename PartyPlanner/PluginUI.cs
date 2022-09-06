@@ -212,6 +212,9 @@ namespace PartyPlanner
                 ImGui.EndTooltip();
             }
 
+            var startsAt = ev.StartsAt.ToLocalTime();
+            var endsAt = ev.EndsAt.ToLocalTime();
+
             ImGui.TableNextColumn();
             ImGui.TextWrapped(description);
             ImGui.TableNextColumn();
@@ -219,15 +222,15 @@ namespace PartyPlanner
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.SetTooltip(ev.StartsAt.ToString());
+                ImGui.SetTooltip(startsAt.ToString());
                 ImGui.EndTooltip();
             }
             ImGui.TableNextColumn();
-            ImGui.Text(ev.EndsAt.Humanize());
+            ImGui.Text(endsAt.Humanize());
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.SetTooltip(ev.EndsAt.ToString());
+                ImGui.SetTooltip(endsAt.ToString());
                 ImGui.EndTooltip();
             }
             ImGui.TableNextRow();
@@ -248,7 +251,7 @@ namespace PartyPlanner
                 ImGui.TextColored(new Vector4(0.668f, 0.146f, 0.910f, 1.0f), eventDetails.Location);
                 ImGui.Spacing();
                 ImGui.TextColored(new Vector4(0.156f, 0.665f, 0.920f, 1.0f),
-                    string.Format("From {0} to {1}", eventDetails.StartsAt.ToString(), eventDetails.EndsAt.ToString()));
+                    string.Format("From {0} to {1}", eventDetails.StartsAt.ToLocalTime().ToString(), eventDetails.EndsAt.ToLocalTime().ToString()));
                 ImGui.Spacing();
                 ImGui.TextColored(new Vector4(0.0888f, 0.740f, 0.176f, 1.0f),
                     string.Format("Tags: {0}", string.Join(", ", eventDetails.Tags)));
