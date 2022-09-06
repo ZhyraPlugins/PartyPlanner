@@ -40,11 +40,18 @@ namespace PartyPlanner
         {
             this.configuration = configuration;
             this.partyVerseApi = new PartyVerseApi();
+            windowTitle = "PartyPlanner";
 
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-            string version = fvi.FileVersion!;
-            windowTitle = string.Format("PartyPlanner v{0}", version);
+            try
+            {
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+                string version = fvi.FileVersion!;
+                windowTitle = string.Format("PartyPlanner v{0}", version);
+            } catch(Exception e)
+            {
+                PluginLog.Error(e, "error loading assembly");
+            }
 
             Task.Run(async () =>
             {
@@ -156,13 +163,28 @@ namespace PartyPlanner
             ImGui.TableNextColumn();
 
             ImGui.Spacing();
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.0742f, 0.530f, 0.150f, 1.0f));
-            if (ImGui.Button(ev.Title))
+
+            var greenColor = new Vector4(0.0742f, 0.530f, 0.150f, 1.0f);
+            ImGui.PushStyleColor(ImGuiCol.Button, greenColor);
+
+            var title = ev.Title;
+            if (title.Length > 30)
+                title = title[..30] + "...";
+
+            if (ImGui.Button(title))
             {
                 this.eventDetails = ev;
                 EventDetailsOpen = true;
             }
             ImGui.PopStyleColor();
+
+            if(ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.TextColored(greenColor, ev.Title);
+                ImGui.Text("Click to open a detailed view.");
+                ImGui.EndTooltip();
+            }
 
             string description = ev.Description;
 
@@ -170,16 +192,23 @@ namespace PartyPlanner
                 description = description[..200] + "...";
 
             ImGui.TableNextColumn();
-            var location = string.Format("[{0}] {1}", serverType.Name, ev.Location);
+
+
+            var originalLocation = string.Format("[{0}] {1}", serverType.Name, ev.Location);
+            var location = originalLocation;
+            if (location.Length > 50)
+                location = location[..50] + "...";
+
             if (ImGui.Selectable(location))
             {
                 ImGui.SetClipboardText(location);
             }
 
-            if(ImGui.IsItemHovered())
+            if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.SetTooltip("Click to copy");
+                ImGui.TextColored(greenColor, originalLocation);
+                ImGui.Text("Click to copy");
                 ImGui.EndTooltip();
             }
 

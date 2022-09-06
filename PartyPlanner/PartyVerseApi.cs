@@ -24,9 +24,17 @@ namespace PartyPlanner
 
         public PartyVerseApi()
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-            string version = fvi.FileVersion!;
+            string version = "unknown";
+            
+            try
+            {
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+                version = fvi.FileVersion!;
+            } catch(Exception e)
+            {
+                PluginLog.Error(e, "error loading assembly");
+            }
 
             graphQL = new GraphQLHttpClient("https://partyverse.app/api/", new NewtonsoftJsonSerializer());
             graphQL.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Dalamud-PartyPlanner/" + version);
