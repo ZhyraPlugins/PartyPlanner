@@ -28,15 +28,14 @@ namespace PartyPlanner
             
             try
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+                System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(Plugin.PluginInterface.AssemblyLocation.FullName);
                 version = fvi.FileVersion!;
             } catch(Exception e)
             {
                 PluginLog.Error(e, "error loading assembly");
             }
 
-            graphQL = new GraphQLHttpClient("https://partyverse.app/api/", new NewtonsoftJsonSerializer());
+            graphQL = new GraphQLHttpClient("https://api.partyverse.app/", new NewtonsoftJsonSerializer());
             graphQL.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Dalamud-PartyPlanner/" + version);
 
             var serverIdsStr = System.Text.Encoding.Default.GetString(Properties.Resources.servers_ids);

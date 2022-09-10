@@ -44,11 +44,11 @@ namespace PartyPlanner
 
             try
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+                System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(Plugin.PluginInterface.AssemblyLocation.FullName);
                 string version = fvi.FileVersion!;
                 windowTitle = string.Format("PartyPlanner v{0}", version);
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 PluginLog.Error(e, "error loading assembly");
             }
@@ -178,7 +178,7 @@ namespace PartyPlanner
             }
             ImGui.PopStyleColor();
 
-            if(ImGui.IsItemHovered())
+            if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
                 ImGui.TextColored(greenColor, ev.Title);
