@@ -3,6 +3,7 @@ using Humanizer;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -18,6 +19,7 @@ namespace PartyPlanner
         private Configuration configuration;
         private PartyVerseApi partyVerseApi { get; init; }
         private readonly List<Models.EventType> partyVerseEvents = new(50);
+        private string filterTag;
         private string windowTitle;
 
         // this extra bool exists for ImGui, since you can't ref a property
@@ -41,6 +43,7 @@ namespace PartyPlanner
             this.configuration = configuration;
             this.partyVerseApi = new PartyVerseApi();
             windowTitle = "PartyPlanner";
+            filterTag = "";
 
             try
             {
@@ -124,6 +127,32 @@ namespace PartyPlanner
         {
             if (ImGui.BeginTabItem(dataCenter.Name))
             {
+           
+
+                var events = partyVerseEvents
+                        .FindAll(ev => ev.LocationId >= 0 && partyVerseApi.GetServerType(ev.LocationId).DataCenter == dataCenter.Id);
+
+                var tags = events.SelectMany(ev => ev.Tags).Distinct().OrderBy(x => x);
+
+                if (filterTag != "" && !tags.Contains(filterTag))
+                    filterTag = "";
+
+                if (ImGui.RadioButton("None", filterTag == ""))
+                {
+                    filterTag = "";
+                }
+
+                foreach (var tag in tags)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.RadioButton(tag, filterTag == tag))
+                    {
+                        filterTag = tag;
+                    }
+                }
+
+                ImGui.Spacing();
+
                 if (ImGui.BeginTable(string.Format("partyverse_events_{0}", dataCenter.Name), 5,
                     ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.BordersInner))
                 {
@@ -136,20 +165,11 @@ namespace PartyPlanner
                     ImGui.TableHeadersRow();
                     ImGui.TableNextRow();
 
-                    if (this.partyVerseEvents != null)
+                    foreach (var ev in events.Where(x => filterTag == "" || x.Tags.Contains(filterTag)))
                     {
-                        foreach (var ev in this.partyVerseEvents)
-                        {
-                            if (ev.LocationId < 0)
-                                continue;
+                        var serverType = partyVerseApi.GetServerType(ev.LocationId);
 
-                            var serverType = partyVerseApi.GetServerType(ev.LocationId);
-
-                            if (serverType.DataCenter != dataCenter.Id)
-                                continue;
-
-                            DrawEventRow(ev, serverType);
-                        }
+                        DrawEventRow(ev, serverType);
                     }
 
                     ImGui.EndTable();
@@ -188,7 +208,7 @@ namespace PartyPlanner
 
             string description = ev.Description;
 
-            if (description.Length > 500)
+            if (description.Length > 200)
                 description = description[..200] + "...";
 
             ImGui.TableNextColumn();
@@ -196,12 +216,12 @@ namespace PartyPlanner
 
             var originalLocation = string.Format("[{0}] {1}", serverType.Name, ev.Location);
             var location = originalLocation;
-            if (location.Length > 50)
-                location = location[..50] + "...";
+            if (location.Length > 100)
+                location = location[..100] + "...";
 
             if (ImGui.Selectable(location))
             {
-                ImGui.SetClipboardText(location);
+                ImGui.SetClipboardText(originalLocation);
             }
 
             if (ImGui.IsItemHovered())
