@@ -12,7 +12,7 @@ namespace PartyPlanner.Models
         [JsonProperty("id")]
         public int Id { get; set; }
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [JsonProperty("datacenter")]
         public int DataCenter { get; set; }
     }
@@ -22,8 +22,8 @@ namespace PartyPlanner.Models
         [JsonProperty("id")]
         public int Id { get; set; }
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [JsonProperty("location")]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
     }
 }

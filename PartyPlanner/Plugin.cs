@@ -41,7 +41,6 @@ namespace PartyPlanner
             });
 
             PluginInterface.UiBuilder.Draw += DrawUI;
-            //PluginInterface.UiBuilder.Loa;
             //PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
         }
 

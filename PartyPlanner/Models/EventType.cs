@@ -12,32 +12,32 @@ namespace PartyPlanner.Models
         [JsonProperty("locationId")]
         public int LocationId { get; set; }
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         [JsonProperty("title")]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         [JsonProperty("tags")]
-        public string[] Tags { get; set; }
+        public string[] Tags { get; set; } = Array.Empty<string>();
         [JsonProperty("startsAt")]
         public DateTime StartsAt { get; set; }
         [JsonProperty("endsAt")]
         public DateTime EndsAt { get; set; }
         [JsonProperty("location")]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
         [JsonProperty("attendeeCount")]
         public int AttendeeCount { get; set; }
         [JsonProperty("attachments")]
-        public string[] Attachments { get; set; }
+        public string[] Attachments { get; set; } = Array.Empty<string>();
     }
 
     public class EventsResponseType
     {
         [JsonProperty("events")]
-        public List<EventType> Events { get; set; }
+        public List<EventType> Events { get; set; } = new List<EventType>();
     }
 
     public class ActiveEventsResponseType
     {
         [JsonProperty("activeEvents")]
-        public List<EventType> ActiveEvents { get; set; }
+        public List<EventType> ActiveEvents { get; set; } = new List<EventType>();
     }
 }
