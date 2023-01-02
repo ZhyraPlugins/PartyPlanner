@@ -127,10 +127,9 @@ namespace PartyPlanner
         {
             if (ImGui.BeginTabItem(dataCenter.Name))
             {
-           
-
                 var events = partyVerseEvents
-                        .FindAll(ev => ev.LocationId >= 0 && partyVerseApi.GetServerType(ev.LocationId).DataCenter == dataCenter.Id);
+                        .FindAll(ev => ev.LocationId >= 0 &&  ev.LocationId < partyVerseApi.Servers.Count
+                        && partyVerseApi.GetServerType(ev.LocationId).DataCenter == dataCenter.Id);
 
                 var tags = events.SelectMany(ev => ev.Tags).Distinct().OrderBy(x => x);
 
