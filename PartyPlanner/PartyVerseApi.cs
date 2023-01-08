@@ -35,7 +35,7 @@ namespace PartyPlanner
                 PluginLog.Error(e, "error loading assembly");
             }
 
-            graphQL = new GraphQLHttpClient("https://api.partyverse.app/", new NewtonsoftJsonSerializer());
+            graphQL = new GraphQLHttpClient("https://api.partake.g/", new NewtonsoftJsonSerializer());
             graphQL.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Dalamud-PartyPlanner/" + version);
 
             var serverIdsStr = System.Text.Encoding.Default.GetString(Properties.Resources.servers_ids);

@@ -1,15 +1,16 @@
 {
   "Author": "Zhyra",
   "Name": "PartyPlanner",
-  "Punchline": "PartyVerse.app, directly on your client!",
-  "Description": "PartyVerse.app, directly on your client!",
+  "Punchline": "Browse community events sourced from partake.gg directly from your client!",
+  "Description": "Browse community events sourced from partake.gg directly from your client!",
   "RepoUrl": "https://github.com/ZhyraPlugins/PartyPlanner",
   "IconUrl": "https://raw.githubusercontent.com/ZhyraPlugins/PartyPlanner/master/PartyPlanner/images/icon.png",
   "InternalName": "PartyPlanner",
-  "DalamudApiLevel": 7,
+  "DalamudApiLevel": 8,
   "ApplicableVersion": "any",
   "Tags": [
     "plugin",
-    "partyverse"
+    "partyverse",
+    "partake"
   ]
 }
