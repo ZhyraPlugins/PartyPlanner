@@ -10,23 +10,23 @@
       },
       "GraphQL.Client": {
         "type": "Direct",
-        "requested": "[5.1.0, )",
-        "resolved": "5.1.0",
-        "contentHash": "ygsFiS/+DSQBmfP1kjmVk8igODFGNihy81EzTqrq7RmwHgyS34+5Nm9Jkd4mgpFsC8a8UZaWerTilKGqDyePHg==",
+        "requested": "[5.1.1, )",
+        "resolved": "5.1.1",
+        "contentHash": "6bfM9qU4AMcFWm4BHd2M6LE5+rLtK47/+VRtypggwb9appC8sbF58ytVBVOKpqKhKpmZERfPLGJap8O/FH3w5w==",
         "dependencies": {
-          "GraphQL.Client.Abstractions": "5.1.0",
-          "GraphQL.Client.Abstractions.Websocket": "5.1.0",
+          "GraphQL.Client.Abstractions": "5.1.1",
+          "GraphQL.Client.Abstractions.Websocket": "5.1.1",
           "System.Reactive": "5.0.0"
         }
       },
       "GraphQL.Client.Serializer.Newtonsoft": {
         "type": "Direct",
-        "requested": "[5.1.0, )",
-        "resolved": "5.1.0",
-        "contentHash": "SM7ijGJqtFbTsHedjMnDNfGCQqz+ha5C+8XsvV5k59fu+7qnWQ333+LqlkHrKO0s77BMGzZ9dHWakRpQAdMcPg==",
+        "requested": "[5.1.1, )",
+        "resolved": "5.1.1",
+        "contentHash": "K0laxF0Jd7x35XTsDfn9DIlqDBT0LrzwM9uXOqczF91WUFgjOrakaMhEkuVd23umS339q098J1Qgdy5gumSiAw==",
         "dependencies": {
-          "GraphQL.Client.Abstractions.Websocket": "5.1.0",
-          "Newtonsoft.Json": "13.0.1"
+          "GraphQL.Client.Abstractions.Websocket": "5.1.1",
+          "Newtonsoft.Json": "13.0.2"
         }
       },
       "Humanizer.Core": {
@@ -37,29 +37,29 @@
       },
       "GraphQL.Client.Abstractions": {
         "type": "Transitive",
-        "resolved": "5.1.0",
-        "contentHash": "IwZUs8WZtSUorZMKaqxykA/PFtn59gVcwbmkPecjnts2mk+sj/x2owlVbv5SnS2f9Za54zFPG2U3YOGZwBk3NQ==",
+        "resolved": "5.1.1",
+        "contentHash": "/znG7Lcz3rzG9VSCq+V2ARb63c/uIs8idGOvXyltZ32Wy570GX/I8HNUIZ1yDThmQRJ5KOGSd9Mzk37lFg49rg==",
         "dependencies": {
-          "GraphQL.Primitives": "5.1.0"
+          "GraphQL.Primitives": "5.1.1"
         }
       },
       "GraphQL.Client.Abstractions.Websocket": {
         "type": "Transitive",
-        "resolved": "5.1.0",
-        "contentHash": "4Pctkq7yrhzDYDrR/BGhsp6HEM4i9JHaBQ2KQIeIzDjHGY55YueIRujGcFziJ8KGFRJvQxnpjrGX2+FPRANNCQ==",
+        "resolved": "5.1.1",
+        "contentHash": "n1gU3GlqJ0jQceb/VEEr4c0D2vpQc5AtDwthK89+yX7VpzlhJKqE5B4RJwx//Jb33mKybfJioWwDgVfSOPAwdw==",
         "dependencies": {
-          "GraphQL.Client.Abstractions": "5.1.0"
+          "GraphQL.Client.Abstractions": "5.1.1"
         }
       },
       "GraphQL.Primitives": {
         "type": "Transitive",
-        "resolved": "5.1.0",
-        "contentHash": "NQmodHoO343gQW9/LbBWteRWlQhLxHV661s3Su8lHl2bPHZ0eauWBkjzWuVY9mLDo54mEDhQv5dTCkFnW21meA=="
+        "resolved": "5.1.1",
+        "contentHash": "RlGNsv19gbz6sQwkzif9J6Jd148nuIg1kRQf2AFOLp5K00IA+pKMdJvHF5t5llDR52Rok46ynhJv/wg+ps9ZhQ=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.1",
-        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
+        "resolved": "13.0.2",
+        "contentHash": "R2pZ3B0UjeyHShm9vG+Tu0EBb2lC8b0dFzV9gVn50ofHXh9Smjk6kTn7A/FdAsC8B5cKib1OnGYOXxRBz5XQDg=="
       },
       "System.Reactive": {
         "type": "Transitive",

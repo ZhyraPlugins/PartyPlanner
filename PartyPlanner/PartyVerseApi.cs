@@ -78,18 +78,29 @@ namespace PartyPlanner
                 Query = @"
                 {
                       events(game: ""final-fantasy-xiv"", sortBy: STARTS_AT) {
+                        id,
                         title,
                         locationId,
                         ageRating,
                         attendeeCount,
                         startsAt,
                         endsAt,
-                        launchUrl,
                         location,
                         tags,
                         description(type: PLAIN_TEXT)
                         attendeeCount
                         attachments
+                        locationData {
+                          server {
+                            id
+                            name
+                            dataCenterId
+                          }
+                          dataCenter {
+                            id
+                            name
+                          }
+                        }
                      }
                 }"
             };
@@ -117,18 +128,29 @@ namespace PartyPlanner
                 Query = @"
                 {
                       activeEvents(game: ""final-fantasy-xiv"", sortBy: STARTS_AT) {
+                        id,
                         title,
                         locationId,
                         ageRating,
                         attendeeCount,
                         startsAt,
                         endsAt,
-                        launchUrl,
                         location,
                         tags,
                         description(type: PLAIN_TEXT)
                         attendeeCount
                         attachments
+                        locationData {
+                          server {
+                            id
+                            name
+                            dataCenterId
+                          }
+                          dataCenter {
+                            id
+                            name
+                          }
+                        }
                      }
                 }"
             };

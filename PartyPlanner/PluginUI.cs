@@ -3,6 +3,7 @@ using Humanizer;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -18,9 +19,12 @@ namespace PartyPlanner
     {
         private Configuration configuration;
         private PartyVerseApi partyVerseApi { get; init; }
+        // All the events
         private readonly List<Models.EventType> partyVerseEvents = new(50);
         private string filterTag;
         private string windowTitle;
+        private readonly Dictionary<int, List<Models.EventType>> eventsByDc = new();
+        private readonly Dictionary<int, SortedDictionary<string, bool>> tagsByDc = new();
 
         // this extra bool exists for ImGui, since you can't ref a property
         private bool visible = false;
@@ -56,12 +60,7 @@ namespace PartyPlanner
                 PluginLog.Error(e, "error loading assembly");
             }
 
-            Task.Run(async () =>
-            {
-                partyVerseEvents.Clear();
-                partyVerseEvents.AddRange(await this.partyVerseApi.GetActiveEvents());
-                partyVerseEvents.AddRange(await this.partyVerseApi.GetEvents());
-            });
+            Task.Run(UpdateEvents);
         }
 
         public void Dispose()
@@ -74,25 +73,41 @@ namespace PartyPlanner
             DrawEventWindow();
         }
 
+        public async void UpdateEvents()
+        {
+            partyVerseEvents.Clear();
+            eventsByDc.Clear();
+            tagsByDc.Clear();
+            partyVerseEvents.AddRange(await this.partyVerseApi.GetActiveEvents());
+            partyVerseEvents.AddRange(await this.partyVerseApi.GetEvents());
+            foreach (var ev in partyVerseEvents)
+            {
+                var key = ev.LocationData.DataCenter.Id;
+
+                if (!eventsByDc.ContainsKey(key))
+                    eventsByDc.Add(key, new());
+                eventsByDc[key].Add(ev);
+                if (!tagsByDc.ContainsKey(key))
+                    tagsByDc.Add(key, new());
+
+                foreach(var tag in ev.Tags)
+                {
+                    if (!tagsByDc[key].ContainsKey(tag))
+                        tagsByDc[key].Add(tag, false);
+                }
+            }
+        }
+
         public void DrawMainWindow()
         {
             if (!Visible)
-            {
                 return;
-            }
 
             ImGui.SetNextWindowSize(new Vector2(1000, 500), ImGuiCond.FirstUseEver);
             if (ImGui.Begin(windowTitle, ref this.visible, ImGuiWindowFlags.None))
             {
                 if (ImGui.Button("Reload Events"))
-                {
-                    Task.Run(async () =>
-                    {
-                        partyVerseEvents.Clear();
-                        partyVerseEvents.AddRange(await this.partyVerseApi.GetActiveEvents());
-                        partyVerseEvents.AddRange(await this.partyVerseApi.GetEvents());
-                    });
-                }
+                    Task.Run(UpdateEvents);
 
                 ImGui.Spacing();
 
@@ -109,10 +124,12 @@ namespace PartyPlanner
                         if (ImGui.BeginTabItem(location.ToUpper()))
                         {
                             ImGui.BeginTabBar("datacenters_tab_bar");
-                            foreach (var datacenter in this.partyVerseApi.DataCenters)
+                            foreach (var dataCenter in this.partyVerseApi.DataCenters)
                             {
-                                if (datacenter.Value.Location == location)
-                                    DrawDataCenter(datacenter.Value);
+                                if (dataCenter.Value.Location == location)
+                                {
+                                    DrawDataCenter(dataCenter.Value);
+                                }
                             }
                             ImGui.EndTabBar();
                             ImGui.EndTabItem();
@@ -127,26 +144,21 @@ namespace PartyPlanner
         {
             if (ImGui.BeginTabItem(dataCenter.Name))
             {
-                var events = partyVerseEvents
-                        .FindAll(ev => ev.LocationId >= 0 &&  ev.LocationId < partyVerseApi.Servers.Count
-                        && partyVerseApi.GetServerType(ev.LocationId).DataCenter == dataCenter.Id);
+                var events = eventsByDc.GetValueOrDefault(dataCenter.Id);
+                events ??= new();
 
-                var tags = events.SelectMany(ev => ev.Tags).Distinct().OrderBy(x => x);
+                var tags = tagsByDc.GetValueOrDefault(dataCenter.Id);
+                tags ??= new();
 
-                if (filterTag != "" && !tags.Contains(filterTag))
-                    filterTag = "";
+                ImGui.Spacing();
 
-                if (ImGui.RadioButton("None", filterTag == ""))
-                {
-                    filterTag = "";
-                }
-
-                foreach (var tag in tags)
+                foreach (var (tag, selected) in tags)
                 {
                     ImGui.SameLine();
-                    if (ImGui.RadioButton(tag, filterTag == tag))
+                    var selectedLocal = selected;
+                    if (ImGui.Checkbox(tag, ref selectedLocal))
                     {
-                        filterTag = tag;
+                        tags[tag] = selectedLocal;
                     }
                 }
 
@@ -156,7 +168,7 @@ namespace PartyPlanner
                     ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.BordersInner))
                 {
                     ImGui.TableHeader("Events");
-                    ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed);
+                    ImGui.TableSetupColumn("Title (click for more info)", ImGuiTableColumnFlags.WidthFixed);
                     ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed);
                     ImGui.TableSetupColumn("Description", ImGuiTableColumnFlags.WidthStretch);
                     ImGui.TableSetupColumn("Starts", ImGuiTableColumnFlags.WidthFixed);
@@ -164,11 +176,23 @@ namespace PartyPlanner
                     ImGui.TableHeadersRow();
                     ImGui.TableNextRow();
 
-                    foreach (var ev in events.Where(x => filterTag == "" || x.Tags.Contains(filterTag)))
+                    foreach (var ev in events)
                     {
-                        var serverType = partyVerseApi.GetServerType(ev.LocationId);
+                        bool filtered = false;
+                        foreach(var (tag, selected) in tags)
+                        {
+                            if(selected && !ev.Tags.Contains(tag))
+                            {
+                                filtered = true;
+                                break;
+                            }
+                        }
 
-                        DrawEventRow(ev, serverType);
+                        if(!filtered)
+                        {
+                            DrawEventRow(ev);
+                        }
+                      
                     }
 
                     ImGui.EndTable();
@@ -177,14 +201,13 @@ namespace PartyPlanner
             }
         }
 
-        public void DrawEventRow(Models.EventType ev, Models.ServerType serverType)
+        public void DrawEventRow(Models.EventType ev)
         {
             ImGui.TableNextColumn();
 
             ImGui.Spacing();
 
             var greenColor = new Vector4(0.0742f, 0.530f, 0.150f, 1.0f);
-            ImGui.PushStyleColor(ImGuiCol.Button, greenColor);
 
             var title = ev.Title;
             if (title.Length > 30)
@@ -195,7 +218,6 @@ namespace PartyPlanner
                 this.eventDetails = ev;
                 EventDetailsOpen = true;
             }
-            ImGui.PopStyleColor();
 
             if (ImGui.IsItemHovered())
             {
@@ -213,7 +235,7 @@ namespace PartyPlanner
             ImGui.TableNextColumn();
 
 
-            var originalLocation = string.Format("[{0}] {1}", serverType.Name, ev.Location);
+            var originalLocation = string.Format("[{0}] {1}", ev.LocationData.Server.Name, ev.Location);
             var location = originalLocation;
             if (location.Length > 100)
                 location = location[..100] + "...";
