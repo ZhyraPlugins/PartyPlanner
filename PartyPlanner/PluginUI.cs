@@ -232,7 +232,7 @@ namespace PartyPlanner
                 ImGui.EndTooltip();
             }
             ImGui.SameLine();
-            ImGui.Text(string.Format("| Ends {0}", ev.EndsAt.Humanize()));
+            ImGui.Text(string.Format("|  Ends {0}", ev.EndsAt.Humanize()));
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
