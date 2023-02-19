@@ -81,6 +81,7 @@ namespace PartyPlanner
             lastUpdate = DateTime.Now;
             foreach (var ev in partyVerseEvents)
             {
+                if(ev.LocationData == null || ev.LocationData.DataCenter == null) continue;
                 var key = ev.LocationData.DataCenter.Id;
 
                 if (!eventsByDc.ContainsKey(key))

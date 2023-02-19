@@ -30,7 +30,7 @@ namespace PartyPlanner.Models
         [JsonProperty("attachments")]
         public string[] Attachments { get; set; } = Array.Empty<string>();
         [JsonProperty("locationData")]
-        public EventLocationData LocationData { get; set; }
+        public EventLocationData? LocationData { get; set; }
     }
 
     public class EventLocationData
