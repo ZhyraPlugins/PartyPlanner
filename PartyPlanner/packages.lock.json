@@ -4,28 +4,28 @@
     "net7.0-windows7.0": {
       "DalamudPackager": {
         "type": "Direct",
-        "requested": "[2.1.10, )",
-        "resolved": "2.1.10",
-        "contentHash": "S6NrvvOnLgT4GDdgwuKVJjbFo+8ZEj+JsEYk9ojjOR/MMfv1dIFpT8aRJQfI24rtDcw1uF+GnSSMN4WW1yt7fw=="
+        "requested": "[2.1.11, )",
+        "resolved": "2.1.11",
+        "contentHash": "9qlAWoRRTiL/geAvuwR/g6Bcbrd/bJJgVnB/RurBiyKs6srsP0bvpoo8IK+Eg8EA6jWeM6/YJWs66w4FIAzqPw=="
       },
       "GraphQL.Client": {
         "type": "Direct",
-        "requested": "[5.1.1, )",
-        "resolved": "5.1.1",
-        "contentHash": "6bfM9qU4AMcFWm4BHd2M6LE5+rLtK47/+VRtypggwb9appC8sbF58ytVBVOKpqKhKpmZERfPLGJap8O/FH3w5w==",
+        "requested": "[6.0.0, )",
+        "resolved": "6.0.0",
+        "contentHash": "8yPNBbuVBpTptivyAlak4GZvbwbUcjeQTL4vN1HKHRuOykZ4r7l5fcLS6vpyPyLn0x8FsL31xbOIKyxbmR9rbA==",
         "dependencies": {
-          "GraphQL.Client.Abstractions": "5.1.1",
-          "GraphQL.Client.Abstractions.Websocket": "5.1.1",
+          "GraphQL.Client.Abstractions": "6.0.0",
+          "GraphQL.Client.Abstractions.Websocket": "6.0.0",
           "System.Reactive": "5.0.0"
         }
       },
       "GraphQL.Client.Serializer.Newtonsoft": {
         "type": "Direct",
-        "requested": "[5.1.1, )",
-        "resolved": "5.1.1",
-        "contentHash": "K0laxF0Jd7x35XTsDfn9DIlqDBT0LrzwM9uXOqczF91WUFgjOrakaMhEkuVd23umS339q098J1Qgdy5gumSiAw==",
+        "requested": "[6.0.0, )",
+        "resolved": "6.0.0",
+        "contentHash": "6AFZjq4MZhR2e1ZZOi++NXMTq0y3Q+sT3S/UAIcLRJ7H6lQ8nxoAbzrlToui/m2j5gO9UL4Pmc+CdvM/H+t8Xg==",
         "dependencies": {
-          "GraphQL.Client.Abstractions.Websocket": "5.1.1",
+          "GraphQL.Client.Abstractions.Websocket": "6.0.0",
           "Newtonsoft.Json": "13.0.2"
         }
       },
@@ -37,24 +37,24 @@
       },
       "GraphQL.Client.Abstractions": {
         "type": "Transitive",
-        "resolved": "5.1.1",
-        "contentHash": "/znG7Lcz3rzG9VSCq+V2ARb63c/uIs8idGOvXyltZ32Wy570GX/I8HNUIZ1yDThmQRJ5KOGSd9Mzk37lFg49rg==",
+        "resolved": "6.0.0",
+        "contentHash": "h7uzWFORHZ+CCjwr/ThAyXMr0DPpzEANDa4Uo54wqCQ+j7qUKwqYTgOrb1W40sqbvNaZm9v/X7It31SUw0maHA==",
         "dependencies": {
-          "GraphQL.Primitives": "5.1.1"
+          "GraphQL.Primitives": "6.0.0"
         }
       },
       "GraphQL.Client.Abstractions.Websocket": {
         "type": "Transitive",
-        "resolved": "5.1.1",
-        "contentHash": "n1gU3GlqJ0jQceb/VEEr4c0D2vpQc5AtDwthK89+yX7VpzlhJKqE5B4RJwx//Jb33mKybfJioWwDgVfSOPAwdw==",
+        "resolved": "6.0.0",
+        "contentHash": "Nr9bPf8gIOvLuXpqEpqr9z9jslYFJOvd0feHth3/kPqeR3uMbjF5pjiwh4jxyMcxHdr8Pb6QiXkV3hsSyt0v7A==",
         "dependencies": {
-          "GraphQL.Client.Abstractions": "5.1.1"
+          "GraphQL.Client.Abstractions": "6.0.0"
         }
       },
       "GraphQL.Primitives": {
         "type": "Transitive",
-        "resolved": "5.1.1",
-        "contentHash": "RlGNsv19gbz6sQwkzif9J6Jd148nuIg1kRQf2AFOLp5K00IA+pKMdJvHF5t5llDR52Rok46ynhJv/wg+ps9ZhQ=="
+        "resolved": "6.0.0",
+        "contentHash": "yg72rrYDapfsIUrul7aF6wwNnTJBOFvuA9VdDTQpPa8AlAriHbufeXYLBcodKjfUdkCnaiggX1U/nEP08Zb5GA=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",

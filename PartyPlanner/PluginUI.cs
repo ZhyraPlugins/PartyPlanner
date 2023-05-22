@@ -76,9 +76,30 @@ namespace PartyPlanner
             partyVerseEvents.Clear();
             eventsByDc.Clear();
             tagsByDc.Clear();
-            partyVerseEvents.AddRange(await this.partyVerseApi.GetActiveEvents());
-            partyVerseEvents.AddRange(await this.partyVerseApi.GetEvents());
+
+            int page = 0;
+            bool queryMore = true;
+
+            while (queryMore)
+            {
+                var newEvents = await this.partyVerseApi.GetActiveEvents(page);
+                queryMore = newEvents.Count >= 100;
+                partyVerseEvents.AddRange(newEvents);
+                page += 1;
+            }
+
+            page = 0;
+            queryMore = true;
+            while (queryMore)
+            {
+                var newEvents = await this.partyVerseApi.GetEvents(page);
+                queryMore = newEvents.Count >= 100;
+                partyVerseEvents.AddRange(newEvents);
+                page += 1;
+            }
+          
             lastUpdate = DateTime.Now;
+
             foreach (var ev in partyVerseEvents)
             {
                 if(ev.LocationData == null || ev.LocationData.DataCenter == null) continue;
