@@ -26,6 +26,7 @@ namespace PartyPlanner
         private readonly Dictionary<int, List<Models.EventType>> eventsByDc = new();
         private readonly Dictionary<int, SortedDictionary<string, bool>> tagsByDc = new();
         private DateTime lastUpdate = DateTime.Now;
+        private string? error = null;
 
         // this extra bool exists for ImGui, since you can't ref a property
         private bool visible = false;
@@ -73,6 +74,7 @@ namespace PartyPlanner
 
         public async void UpdateEvents()
         {
+            error = null;
             partyVerseEvents.Clear();
             eventsByDc.Clear();
             tagsByDc.Clear();
@@ -80,42 +82,48 @@ namespace PartyPlanner
             int page = 0;
             bool queryMore = true;
 
-            while (queryMore)
+            try
             {
-                var newEvents = await this.partyVerseApi.GetActiveEvents(page);
-                queryMore = newEvents.Count >= 100;
-                partyVerseEvents.AddRange(newEvents);
-                page += 1;
-            }
-
-            page = 0;
-            queryMore = true;
-            while (queryMore)
-            {
-                var newEvents = await this.partyVerseApi.GetEvents(page);
-                queryMore = newEvents.Count >= 100;
-                partyVerseEvents.AddRange(newEvents);
-                page += 1;
-            }
-          
-            lastUpdate = DateTime.Now;
-
-            foreach (var ev in partyVerseEvents)
-            {
-                if(ev.LocationData == null || ev.LocationData.DataCenter == null) continue;
-                var key = ev.LocationData.DataCenter.Id;
-
-                if (!eventsByDc.ContainsKey(key))
-                    eventsByDc.Add(key, new());
-                eventsByDc[key].Add(ev);
-                if (!tagsByDc.ContainsKey(key))
-                    tagsByDc.Add(key, new());
-
-                foreach (var tag in ev.Tags)
+                while (queryMore)
                 {
-                    if (!tagsByDc[key].ContainsKey(tag))
-                        tagsByDc[key].Add(tag, false);
+                    var newEvents = await this.partyVerseApi.GetActiveEvents(page);
+                    queryMore = newEvents.Count >= 100;
+                    partyVerseEvents.AddRange(newEvents);
+                    page += 1;
                 }
+
+                page = 0;
+                queryMore = true;
+                while (queryMore)
+                {
+                    var newEvents = await this.partyVerseApi.GetEvents(page);
+                    queryMore = newEvents.Count >= 100;
+                    partyVerseEvents.AddRange(newEvents);
+                    page += 1;
+                }
+
+                lastUpdate = DateTime.Now;
+
+                foreach (var ev in partyVerseEvents)
+                {
+                    if (ev.LocationData == null || ev.LocationData.DataCenter == null) continue;
+                    var key = ev.LocationData.DataCenter.Id;
+
+                    if (!eventsByDc.ContainsKey(key))
+                        eventsByDc.Add(key, new());
+                    eventsByDc[key].Add(ev);
+                    if (!tagsByDc.ContainsKey(key))
+                        tagsByDc.Add(key, new());
+
+                    foreach (var tag in ev.Tags)
+                    {
+                        if (!tagsByDc[key].ContainsKey(tag))
+                            tagsByDc[key].Add(tag, false);
+                    }
+                }
+            } catch (Exception ex)
+            {
+                error = string.Format("Error getting events: {0}", ex.Message);
             }
         }
 
@@ -134,7 +142,11 @@ namespace PartyPlanner
 
                 ImGui.Spacing();
 
-                if (partyVerseEvents == null || partyVerseEvents.Count == 0)
+                if (error != null)
+                {
+                    ImGui.Text(error);
+                }
+                else if (partyVerseEvents == null || partyVerseEvents.Count == 0)
                 {
                     ImGui.Text("Loading events...");
                 }

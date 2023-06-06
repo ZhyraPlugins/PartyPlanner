@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<Authors>Zhyra</Authors>
 		<Company></Company>
-		<Version>1.5.2</Version>
-		<Description>PartyVerse.app, directly on your client!</Description>
+		<Version>1.5.3</Version>
+		<Description>partake.gg, directly on your client!</Description>
 		<Copyright>MIT</Copyright>
 		<PackageProjectUrl>https://github.com/edg-l/PartyPlanner</PackageProjectUrl>
 	</PropertyGroup>
