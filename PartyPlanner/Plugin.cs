@@ -2,6 +2,7 @@
 using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using GraphQL;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
@@ -21,9 +22,9 @@ namespace PartyPlanner
         [PluginService]
         internal static DalamudPluginInterface PluginInterface { get; private set; } = null!;
         [PluginService]
-        internal static CommandManager CommandManager { get; private set; } = null!;
+        internal static ICommandManager CommandManager { get; private set; } = null!;
         [PluginService]
-        internal static DataManager DataManager { get; private set; } = null!;
+        internal static IDataManager DataManager { get; private set; } = null!;
         private Configuration Configuration { get; init; }
         private PluginUI PluginUi { get; init; }
 
