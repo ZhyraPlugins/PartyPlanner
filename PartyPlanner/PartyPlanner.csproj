@@ -1,28 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="Dalamud.Plugin.Bootstrap.targets"/>
+
 	<PropertyGroup>
 		<Authors>Zhyra</Authors>
-		<Company></Company>
-		<Version>1.5.4</Version>
+		<Company>ZhyraPlugins</Company>
+		<Version>1.6.0</Version>
 		<Description>partake.gg, directly on your client!</Description>
-		<Copyright>MIT</Copyright>
+		<Copyright>Apache-2.0</Copyright>
 		<PackageProjectUrl>https://github.com/edg-l/PartyPlanner</PackageProjectUrl>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<TargetFramework>net7.0-windows</TargetFramework>
-		<Platforms>x64</Platforms>
-		<Nullable>enable</Nullable>
-		<LangVersion>latest</LangVersion>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">
@@ -30,62 +17,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DalamudPackager" Version="2.1.12" />
 		<PackageReference Include="GraphQL.Client" Version="6.0.1" />
 		<PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.0.1" />
 		<PackageReference Include="Humanizer.Core" Version="2.14.1" />
-		<Reference Include="FFXIVClientStructs">
-			<HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Dalamud">
-			<HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="ImGui.NET">
-			<HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="ImGuiScene">
-			<HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Lumina">
-			<HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Lumina.Excel">
-			<HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="servers_ids.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Resource>
 		<None Update="images\icon.png">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Update="Properties\Resources.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Resources.resx</DependentUpon>
-		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Update="Properties\Resources.resx">
-			<Generator>ResXFileCodeGenerator</Generator>
-			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
 	</ItemGroup>
 
 </Project>

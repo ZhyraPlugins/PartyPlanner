@@ -1,15 +1,10 @@
 ﻿using Dalamud.Data;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using GraphQL;
-using GraphQL.Client.Http;
-using GraphQL.Client.Serializer.Newtonsoft;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
+using PartyPlanner.Windows;
 
 namespace PartyPlanner
 {
@@ -24,17 +19,22 @@ namespace PartyPlanner
         [PluginService]
         internal static ICommandManager CommandManager { get; private set; } = null!;
         [PluginService]
-        internal static IDataManager DataManager { get; private set; } = null!;
+        public static IDataManager DataManager { get; private set; } = null!;
+        [PluginService]
+        public static IPluginLog Logger { get; private set; } = null!;
         private Configuration Configuration { get; init; }
-        private PluginUI PluginUi { get; init; }
+        public WindowSystem WindowSystem = new("PartyPlanner");
+        private MainWindow mainWindow { get; init; }
 
         public Plugin()
         {
             this.Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(PluginInterface);
 
-            // you might normally want to embed resources and load them from the manifest stream
-            PluginUi = new PluginUI(this.Configuration);
+            mainWindow = new MainWindow(this);
+
+
+            WindowSystem.AddWindow(mainWindow);
 
             CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
@@ -47,27 +47,22 @@ namespace PartyPlanner
 
         public void Dispose()
         {
-            this.PluginUi.Dispose();
+            this.WindowSystem.RemoveAllWindows();
+
+            mainWindow.Dispose();
+
             CommandManager.RemoveHandler(commandName);
         }
 
         private void OnCommand(string command, string args)
         {
-            // in response to the slash command, just display our main ui
-            this.PluginUi.Visible = true;
-            
+            mainWindow.IsOpen = true;
+
         }
 
         private void DrawUI()
         {
-            this.PluginUi.Draw();
+            this.WindowSystem.Draw();
         }
-
-        /*
-        private void DrawConfigUI()
-        {
-            //this.PluginUi.SettingsVisible = true;
-        }
-        */
     }
 }

@@ -6,7 +6,6 @@
   "RepoUrl": "https://github.com/ZhyraPlugins/PartyPlanner",
   "IconUrl": "https://raw.githubusercontent.com/ZhyraPlugins/PartyPlanner/master/PartyPlanner/images/icon.png",
   "InternalName": "PartyPlanner",
-  "DalamudApiLevel": 9,
   "ApplicableVersion": "any",
   "Tags": [
     "plugin",

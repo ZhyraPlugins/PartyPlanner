@@ -1,20 +1,24 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PartyPlanner.Models
 {
     public class ServerType
     {
+        public ServerType(int id, string name, int dataCenter)
+        {
+            Id = id;
+            Name = name;
+            DataCenter = dataCenter;
+        }
+
         [JsonProperty("id")]
         public int Id { get; set; }
         [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;
         [JsonProperty("datacenter")]
         public int DataCenter { get; set; }
+
+
     }
 
     public class DataCenterType
@@ -24,6 +28,12 @@ namespace PartyPlanner.Models
         [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;
         [JsonProperty("location")]
-        public string Location { get; set; } = string.Empty;
+        public int Region { get; set; } = 0;
+
+        public DataCenterType(int Id, string Name, int Region) {
+            this.Id = Id;
+            this.Name = Name;
+            this.Region = Region;
+        }
     }
 }
