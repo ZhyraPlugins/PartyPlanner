@@ -5,9 +5,9 @@
 	<PropertyGroup>
 		<Authors>Zhyra</Authors>
 		<Company>ZhyraPlugins</Company>
-		<Version>1.6.0</Version>
+		<Version>1.6.1</Version>
 		<Description>partake.gg, directly on your client!</Description>
-		<Copyright>Apache-2.0</Copyright>
+		<PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/edg-l/PartyPlanner</PackageProjectUrl>
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>

@@ -183,16 +183,21 @@ public sealed class MainWindow : Window, IDisposable
             var tags = tagsByDc.GetValueOrDefault(dataCenter.Name);
             tags ??= new();
 
-            ImGui.Spacing();
-
+            var i = 0;
             foreach (var (tag, selected) in tags)
             {
                 ImGui.SameLine();
+                if(i % 8 == 0) {
+                    ImGui.NewLine();
+                }
+
                 var selectedLocal = selected;
                 if (ImGui.Checkbox(tag, ref selectedLocal))
                 {
                     tags[tag] = selectedLocal;
                 }
+
+                i += 1;
             }
 
             foreach (var ev in events)

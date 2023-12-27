@@ -1,5 +1,5 @@
-# PartyPlanner 
-A Dalamud plugin to see [partyverse.app](https://partyverse.app/) events ingame 
+# PartyPlanner
+Browse community events sourced from <https://partake.gg> directly from your client!
 
 You can install it from the dalamud plugin browser.
 

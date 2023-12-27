@@ -10,7 +10,7 @@ namespace PartyPlanner
 {
     public sealed class Plugin : IDalamudPlugin
     {
-        public string Name => "PartyPlanner";
+        public static string Name => "PartyPlanner";
 
         private const string commandName = "/partyplanner";
 
@@ -24,7 +24,7 @@ namespace PartyPlanner
         public static IPluginLog Logger { get; private set; } = null!;
         private Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("PartyPlanner");
-        private MainWindow mainWindow { get; init; }
+        private readonly MainWindow mainWindow;
 
         public Plugin()
         {
