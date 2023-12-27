@@ -127,7 +127,8 @@ public sealed class MainWindow : Window, IDisposable
     public override void OnOpen()
     {
         base.OnOpen();
-        if(lastUpdate.AddMinutes(5).CompareTo(DateTime.Now) <= 0) {
+        if (lastUpdate.AddMinutes(5).CompareTo(DateTime.Now) <= 0)
+        {
             Task.Run(UpdateEvents);
         }
     }
@@ -135,42 +136,42 @@ public sealed class MainWindow : Window, IDisposable
     public override void Draw()
     {
         if (ImGui.Button("Reload Events"))
-                Task.Run(UpdateEvents);
-            ImGui.SameLine();
-            ImGui.Text(string.Format("Updated {0}", lastUpdate.Humanize()));
+            Task.Run(UpdateEvents);
+        ImGui.SameLine();
+        ImGui.Text(string.Format("Updated {0}", lastUpdate.Humanize()));
 
-            ImGui.Spacing();
+        ImGui.Spacing();
 
-            if (error != null)
-            {
-                ImGui.Text(error);
-            }
-            else if (partyVerseEvents == null || partyVerseEvents.Count == 0)
-            {
-                ImGui.Text("Loading events...");
-            }
-            else
-            {
-                ImGui.BeginTabBar("region_tab_bar");
+        if (error != null)
+        {
+            ImGui.Text(error);
+        }
+        else if (partyVerseEvents == null || partyVerseEvents.Count == 0)
+        {
+            ImGui.Text("Loading events...");
+        }
+        else
+        {
+            ImGui.BeginTabBar("region_tab_bar");
 
-                for(var location = 1; location < PartyVerseApi.RegionList.Count; location++)
+            for (var location = 1; location < PartyVerseApi.RegionList.Count; location++)
+            {
+                var regionName = PartyVerseApi.RegionList[location];
+                if (ImGui.BeginTabItem(regionName))
                 {
-                    var regionName = PartyVerseApi.RegionList[location];
-                    if (ImGui.BeginTabItem(regionName))
+                    ImGui.BeginTabBar("datacenters_tab_bar");
+                    foreach (var dataCenter in this.partyVerseApi.DataCenters)
                     {
-                        ImGui.BeginTabBar("datacenters_tab_bar");
-                        foreach (var dataCenter in this.partyVerseApi.DataCenters)
+                        if (dataCenter.Value.Region == location)
                         {
-                            if (dataCenter.Value.Region == location)
-                            {
-                                DrawDataCenter(dataCenter.Value);
-                            }
+                            DrawDataCenter(dataCenter.Value);
                         }
-                        ImGui.EndTabBar();
-                        ImGui.EndTabItem();
                     }
+                    ImGui.EndTabBar();
+                    ImGui.EndTabItem();
                 }
             }
+        }
     }
 
     public void DrawDataCenter(Models.DataCenterType dataCenter)
@@ -187,7 +188,8 @@ public sealed class MainWindow : Window, IDisposable
             foreach (var (tag, selected) in tags)
             {
                 ImGui.SameLine();
-                if(i % 8 == 0) {
+                if (i % 8 == 0)
+                {
                     ImGui.NewLine();
                 }
 

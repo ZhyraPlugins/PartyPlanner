@@ -30,7 +30,8 @@ namespace PartyPlanner.Models
         [JsonProperty("location")]
         public int Region { get; set; } = 0;
 
-        public DataCenterType(int Id, string Name, int Region) {
+        public DataCenterType(int Id, string Name, int Region)
+        {
             this.Id = Id;
             this.Name = Name;
             this.Region = Region;

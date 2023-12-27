@@ -30,15 +30,15 @@ namespace PartyPlanner.Models
         [JsonProperty("attachments")]
         public string[] Attachments { get; set; } = Array.Empty<string>();
         [JsonProperty("locationData")]
-        public EventLocationData? LocationData { get; set; }
+        public EventLocationData LocationData { get; set; } = null!;
     }
 
     public class EventLocationData
     {
         [JsonProperty("server")]
-        public EventServerData Server { get; set; }
+        public EventServerData Server { get; set; } = null!;
         [JsonProperty("dataCenter")]
-        public EventServerData DataCenter { get; set; }
+        public EventServerData DataCenter { get; set; } = null!;
     }
 
     public class EventServerData
@@ -46,7 +46,7 @@ namespace PartyPlanner.Models
         [JsonProperty("id")]
         public int Id { get; set; }
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         [JsonProperty("dataCenterId")]
         public int DataCenterId { get; set; }
     }
@@ -56,7 +56,7 @@ namespace PartyPlanner.Models
         [JsonProperty("id")]
         public int Id { get; set; }
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 
     public class EventsResponseType
