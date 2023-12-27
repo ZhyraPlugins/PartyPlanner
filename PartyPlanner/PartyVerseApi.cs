@@ -11,6 +11,7 @@ using Dalamud.Utility;
 using GraphQL;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
+using PartyPlanner.Models;
 
 namespace PartyPlanner
 {
@@ -18,10 +19,12 @@ namespace PartyPlanner
     {
         private GraphQLHttpClient graphQL;
 
-        public Dictionary<int, Models.ServerType> Servers { get; private init; }
-        public Dictionary<int, Models.DataCenterType> DataCenters { get; private init; }
+        private Dictionary<int, Models.ServerType> servers;
+        private Dictionary<int, Models.DataCenterType> dataCenters;
 
         public static readonly List<string> RegionList = new() { "Unknown", "Japan", "North America", "Europe", "Oceania" };
+
+        public Dictionary<int, DataCenterType> DataCenters { get => dataCenters; set => dataCenters = value; }
 
         public PartyVerseApi()
         {
@@ -40,20 +43,20 @@ namespace PartyPlanner
             graphQL = new GraphQLHttpClient("https://api.partake.gg/", new NewtonsoftJsonSerializer());
             graphQL.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Dalamud-PartyPlanner/" + version);
 
-            Servers = new();
-            DataCenters = new();
+            servers = new();
+            dataCenters = new();
 
             // LocalPlayer.HomeWorld.GameData.Datacenter.Row
 
-            var servers = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.World>(Dalamud.ClientLanguage.English);
-            var datacenters = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.WorldDCGroupType>(Dalamud.ClientLanguage.English);
+            var worlds = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.World>(Dalamud.ClientLanguage.English);
+            var worldGroups = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.WorldDCGroupType>(Dalamud.ClientLanguage.English);
 
-            if (datacenters != null)
+            if (worldGroups != null)
             {
                 // 0 is unknown
-                for (uint i = 1; i < datacenters.RowCount; i++)
+                for (uint i = 1; i < worldGroups.RowCount; i++)
                 {
-                    var dc = datacenters.GetRow(i);
+                    var dc = worldGroups.GetRow(i);
 
                     if (dc != null)
                     {
@@ -62,7 +65,7 @@ namespace PartyPlanner
                         // region 7 = cloud beta dc
                         if (name != "Dev" && dc.Region != 7)
                         {
-                            DataCenters.Add((int)dc.RowId, new Models.DataCenterType((int)dc.RowId, dc.Name, dc.Region));
+                            dataCenters.Add((int)dc.RowId, new Models.DataCenterType((int)dc.RowId, dc.Name, dc.Region));
                             Plugin.Logger.Info("id: {0}", dc.RowId);
                             Plugin.Logger.Info("name: {0}", dc.Name);
                             Plugin.Logger.Info("region: {0}", dc.Region);
@@ -74,24 +77,24 @@ namespace PartyPlanner
                 }
             }
 
-            if (servers != null)
+            if (worlds != null)
             {
                 // 0 is unknown
-                for (uint i = 1; i < servers.RowCount; i++)
+                for (uint i = 1; i < worlds.RowCount; i++)
                 {
-                    var server = servers.GetRow(i);
+                    var server = worlds.GetRow(i);
 
                     if (server != null)
                     {
-                        if (server.IsPublic && DataCenters.ContainsKey((int)server.DataCenter.Row))
+                        if (server.IsPublic && dataCenters.ContainsKey((int)server.DataCenter.Row))
                         {
-                            Servers.Add((int)server.RowId, new Models.ServerType((int)server.RowId, server.Name.RawString, (int)server.DataCenter.Row));
+                            servers.Add((int)server.RowId, new Models.ServerType((int)server.RowId, server.Name.RawString, (int)server.DataCenter.Row));
                             Plugin.Logger.Info("id: {0}", server.RowId);
                             Plugin.Logger.Info("region: {0}", server.Region);
                             Plugin.Logger.Info("name: {0}", server.Name);
                             Plugin.Logger.Info("DataCenter: {0}", server.DataCenter.Row);
                             Plugin.Logger.Info("is public: {0}", server.IsPublic);
-                            Plugin.Logger.Info("DataCenter: {0}", DataCenters[(int)server.DataCenter.Row].Name);
+                            Plugin.Logger.Info("DataCenter: {0}", dataCenters[(int)server.DataCenter.Row].Name);
                             Plugin.Logger.Info("----");
                         }
                     }
@@ -206,12 +209,12 @@ namespace PartyPlanner
 
         public Models.ServerType GetServerType(int id)
         {
-            return Servers[id];
+            return servers[id];
         }
 
         public Models.DataCenterType GetDataCenterType(int id)
         {
-            return DataCenters[id];
+            return dataCenters[id];
         }
 
         [GeneratedRegex(@"[^\u0000-\u007F]+")]

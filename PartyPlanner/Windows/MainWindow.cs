@@ -18,37 +18,20 @@ namespace PartyPlanner.Windows;
 
 public sealed class MainWindow : Window, IDisposable
 {
-    private Plugin plugin;
-    private PartyVerseApi partyVerseApi { get; init; }
+    private readonly PartyVerseApi partyVerseApi;
     // All the events
     private readonly List<Models.EventType> partyVerseEvents = new(50);
     private readonly Dictionary<string, List<Models.EventType>> eventsByDc = new();
     private readonly Dictionary<string, SortedDictionary<string, bool>> tagsByDc = new();
     private DateTime lastUpdate = DateTime.Now;
-    private string? error = null;
+    private string? displayError = null;
 
-    // this extra bool exists for ImGui, since you can't ref a property
-    private bool visible = false;
-    public bool Visible
+    public MainWindow() : base("PartyPlanner", ImGuiWindowFlags.None)
     {
-        get { return this.visible; }
-        set { this.visible = value; }
-    }
+        partyVerseApi = new PartyVerseApi();
 
-    private bool eventDetailsOpen = false;
-    public bool EventDetailsOpen
-    {
-        get { return this.eventDetailsOpen; }
-        set { this.eventDetailsOpen = value; }
-    }
-
-    public MainWindow(Plugin plugin) : base("PartyPlanner", ImGuiWindowFlags.None)
-    {
-        this.plugin = plugin;
-        this.partyVerseApi = new PartyVerseApi();
-
-        this.SizeCondition = ImGuiCond.FirstUseEver;
-        this.Size = new Vector2(1000, 500);
+        SizeCondition = ImGuiCond.FirstUseEver;
+        Size = new Vector2(1000, 500);
 
         try
         {
@@ -70,7 +53,7 @@ public sealed class MainWindow : Window, IDisposable
 
     public async void UpdateEvents()
     {
-        error = null;
+        displayError = null;
         partyVerseEvents.Clear();
         eventsByDc.Clear();
         tagsByDc.Clear();
@@ -82,7 +65,7 @@ public sealed class MainWindow : Window, IDisposable
         {
             while (queryMore)
             {
-                var newEvents = await this.partyVerseApi.GetActiveEvents(page);
+                var newEvents = await partyVerseApi.GetActiveEvents(page);
                 queryMore = newEvents.Count >= 100;
                 partyVerseEvents.AddRange(newEvents);
                 page += 1;
@@ -92,7 +75,7 @@ public sealed class MainWindow : Window, IDisposable
             queryMore = true;
             while (queryMore)
             {
-                var newEvents = await this.partyVerseApi.GetEvents(page);
+                var newEvents = await partyVerseApi.GetEvents(page);
                 queryMore = newEvents.Count >= 100;
                 partyVerseEvents.AddRange(newEvents);
                 page += 1;
@@ -120,7 +103,7 @@ public sealed class MainWindow : Window, IDisposable
         }
         catch (Exception ex)
         {
-            error = string.Format("Error getting events: {0}", ex.Message);
+            displayError = string.Format("Error getting events: {0}", ex.Message);
         }
     }
 
@@ -142,9 +125,9 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.Spacing();
 
-        if (error != null)
+        if (displayError != null)
         {
-            ImGui.Text(error);
+            ImGui.Text(displayError);
         }
         else if (partyVerseEvents == null || partyVerseEvents.Count == 0)
         {

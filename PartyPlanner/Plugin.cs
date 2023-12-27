@@ -31,7 +31,7 @@ namespace PartyPlanner
             this.Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(PluginInterface);
 
-            mainWindow = new MainWindow(this);
+            mainWindow = new MainWindow();
 
 
             WindowSystem.AddWindow(mainWindow);
