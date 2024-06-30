@@ -19,8 +19,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GraphQL.Client" Version="6.0.2" />
-		<PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.0.2" />
+		<PackageReference Include="GraphQL.Client" Version="6.1.0" />
+		<PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.1.0" />
 		<PackageReference Include="Humanizer.Core" Version="2.14.1" />
 	</ItemGroup>
 
@@ -28,6 +28,10 @@
 		<None Update="images\icon.png">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="DalamudPackager" Version="2.1.13" />
 	</ItemGroup>
 
 </Project>
