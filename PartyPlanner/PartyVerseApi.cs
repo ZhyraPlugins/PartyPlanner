@@ -17,12 +17,12 @@ namespace PartyPlanner
 {
     public partial class PartyVerseApi
     {
-        private GraphQLHttpClient graphQL;
+        private readonly GraphQLHttpClient graphQL;
 
-        private Dictionary<int, Models.ServerType> servers;
+        private readonly Dictionary<int, Models.ServerType> servers;
         private Dictionary<int, Models.DataCenterType> dataCenters;
 
-        public static readonly List<string> RegionList = new() { "Unknown", "Japan", "North America", "Europe", "Oceania" };
+        public static readonly List<string> RegionList = ["Unknown", "Japan", "North America", "Europe", "Oceania"];
 
         public Dictionary<int, DataCenterType> DataCenters { get => dataCenters; set => dataCenters = value; }
 
@@ -43,8 +43,8 @@ namespace PartyPlanner
             graphQL = new GraphQLHttpClient("https://api.partake.gg/", new NewtonsoftJsonSerializer());
             graphQL.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Dalamud-PartyPlanner/" + version);
 
-            servers = new();
-            dataCenters = new();
+            servers = [];
+            dataCenters = [];
 
             // LocalPlayer.HomeWorld.GameData.Datacenter.Row
 
