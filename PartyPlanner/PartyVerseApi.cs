@@ -48,8 +48,8 @@ namespace PartyPlanner
 
             // LocalPlayer.HomeWorld.GameData.Datacenter.Row
 
-            var worlds = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.World>(Dalamud.ClientLanguage.English);
-            var worldGroups = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.WorldDCGroupType>(Dalamud.ClientLanguage.English);
+            var worlds = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.World>();
+            var worldGroups = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.WorldDCGroupType>();
 
             if (worldGroups != null)
             {

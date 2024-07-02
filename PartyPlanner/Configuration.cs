@@ -10,9 +10,9 @@ namespace PartyPlanner
         public int Version { get; set; } = 0;
 
         [NonSerialized]
-        private DalamudPluginInterface? pluginInterface;
+        private IDalamudPluginInterface? pluginInterface;
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        public void Initialize(IDalamudPluginInterface pluginInterface)
         {
             this.pluginInterface = pluginInterface;
         }

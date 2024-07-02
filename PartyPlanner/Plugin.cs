@@ -15,7 +15,7 @@ namespace PartyPlanner
         private const string commandName = "/partyplanner";
 
         [PluginService]
-        internal static DalamudPluginInterface PluginInterface { get; private set; } = null!;
+        internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
         [PluginService]
         internal static ICommandManager CommandManager { get; private set; } = null!;
         [PluginService]
