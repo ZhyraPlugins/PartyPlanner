@@ -7,7 +7,15 @@ namespace PartyPlanner
     [Serializable]
     public class Configuration : IPluginConfiguration
     {
-        public int Version { get; set; } = 0;
+        public int Version { get; set; } = 1;
+
+        public string SelectedRegion { get; set; } = string.Empty;
+        public string SelectedDataCenter { get; set; } = string.Empty;
+
+        [NonSerialized]
+        public bool SelectedRegionSet = false;
+        [NonSerialized]
+        public bool SelectedDataCenterSet = false;
 
         [NonSerialized]
         private IDalamudPluginInterface? pluginInterface;

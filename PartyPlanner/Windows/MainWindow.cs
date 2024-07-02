@@ -21,14 +21,16 @@ public sealed class MainWindow : Window, IDisposable
     private readonly PartyVerseApi partyVerseApi;
     // All the events
     private readonly List<Models.EventType> partyVerseEvents = new(50);
-    private readonly Dictionary<string, List<Models.EventType>> eventsByDc = new();
-    private readonly Dictionary<string, SortedDictionary<string, bool>> tagsByDc = new();
+    private readonly Dictionary<string, List<Models.EventType>> eventsByDc = [];
+    private readonly Dictionary<string, SortedDictionary<string, bool>> tagsByDc = [];
     private DateTime lastUpdate = DateTime.Now;
     private string? displayError = null;
+    private Configuration Configuration { get; init; }
 
-    public MainWindow() : base("PartyPlanner", ImGuiWindowFlags.None)
+    public MainWindow(Configuration configuration) : base("PartyPlanner", ImGuiWindowFlags.None)
     {
         partyVerseApi = new PartyVerseApi();
+        this.Configuration = configuration;
 
         SizeCondition = ImGuiCond.FirstUseEver;
         Size = new Vector2(1000, 500);
@@ -89,10 +91,10 @@ public sealed class MainWindow : Window, IDisposable
                 var key = ev.LocationData.DataCenter.Name;
 
                 if (!eventsByDc.ContainsKey(key))
-                    eventsByDc.Add(key, new());
+                    eventsByDc.Add(key, []);
                 eventsByDc[key].Add(ev);
                 if (!tagsByDc.ContainsKey(key))
-                    tagsByDc.Add(key, new());
+                    tagsByDc.Add(key, []);
 
                 foreach (var tag in ev.Tags)
                 {
@@ -140,8 +142,28 @@ public sealed class MainWindow : Window, IDisposable
             for (var location = 1; location < PartyVerseApi.RegionList.Count; location++)
             {
                 var regionName = PartyVerseApi.RegionList[location];
-                if (ImGui.BeginTabItem(regionName))
+
+                if (this.Configuration.SelectedRegion.IsNullOrEmpty())
                 {
+                    this.Configuration.SelectedRegion = regionName;
+                    this.Configuration.Save();
+                }
+
+                var open = this.Configuration.SelectedRegion.Equals(regionName);
+                var true_val = true;
+
+                var flags = ImGuiTabItemFlags.None;
+
+                if (!this.Configuration.SelectedRegionSet && open)
+                {
+                    flags |= ImGuiTabItemFlags.SetSelected;
+                    this.Configuration.SelectedRegionSet = true;
+                }
+
+                if (ImGui.BeginTabItem(regionName, ref true_val, flags))
+                {
+                    this.Configuration.SelectedRegion = regionName;
+                    this.Configuration.Save();
                     ImGui.BeginTabBar("datacenters_tab_bar");
                     foreach (var dataCenter in this.partyVerseApi.DataCenters)
                     {
@@ -159,13 +181,32 @@ public sealed class MainWindow : Window, IDisposable
 
     public void DrawDataCenter(Models.DataCenterType dataCenter)
     {
-        if (ImGui.BeginTabItem(dataCenter.Name))
+        if (this.Configuration.SelectedDataCenter.IsNullOrEmpty())
         {
+            this.Configuration.SelectedDataCenter = dataCenter.Name;
+            this.Configuration.Save();
+        }
+
+        var open = this.Configuration.SelectedDataCenter == dataCenter.Name;
+        var true_val = true;
+
+        var flags = ImGuiTabItemFlags.None;
+
+        if (!this.Configuration.SelectedRegionSet && open)
+        {
+            flags |= ImGuiTabItemFlags.SetSelected;
+            this.Configuration.SelectedRegionSet = true;
+        }
+
+        if (ImGui.BeginTabItem(dataCenter.Name, ref true_val, flags))
+        {
+            this.Configuration.SelectedDataCenter = dataCenter.Name;
+            this.Configuration.Save();
             var events = eventsByDc.GetValueOrDefault(dataCenter.Name);
-            events ??= new();
+            events ??= [];
 
             var tags = tagsByDc.GetValueOrDefault(dataCenter.Name);
-            tags ??= new();
+            tags ??= [];
 
             var i = 0;
             foreach (var (tag, selected) in tags)
@@ -210,7 +251,7 @@ public sealed class MainWindow : Window, IDisposable
         }
     }
 
-    public void DrawEventRow(Models.EventType ev)
+    public static void DrawEventRow(Models.EventType ev)
     {
         ImGui.Spacing();
 
