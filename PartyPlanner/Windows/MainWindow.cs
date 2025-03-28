@@ -105,7 +105,8 @@ public sealed class MainWindow : Window, IDisposable
         }
         catch (Exception ex)
         {
-            displayError = string.Format("Error getting events: {0}", ex.Message);
+            Plugin.Logger.Error(ex, "error getting events");
+            displayError = string.Format("Error getting events: {0}, {1}", ex.Message, ex.InnerException);
         }
     }
 
