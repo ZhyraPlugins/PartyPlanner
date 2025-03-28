@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="Dalamud.Plugin.Bootstrap.targets" />
-
+<Project Sdk="Dalamud.NET.SDK/12.0.2">
 	<PropertyGroup>
 		<Authors>Zhyra</Authors>
 		<Company>ZhyraPlugins</Company>
-		<Version>1.6.3</Version>
+		<Version>1.6.4</Version>
 		<Description>partake.gg, directly on your client!</Description>
 		<Copyright></Copyright>
 		<PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/edg-l/PartyPlanner</PackageProjectUrl>
 		<IsPackable>false</IsPackable>
-		<LangVersion>12.0</LangVersion>
-	</PropertyGroup>
 
-	<PropertyGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">
-		<DalamudLibPath>$(DALAMUD_HOME)/</DalamudLibPath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,12 +20,8 @@
 
 	<ItemGroup>
 		<None Update="images\icon.png">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Update="DalamudPackager" Version="11.0.0" />
 	</ItemGroup>
 
 </Project>
