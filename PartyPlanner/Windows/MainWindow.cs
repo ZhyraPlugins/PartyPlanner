@@ -1,16 +1,11 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Humanizer;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 
