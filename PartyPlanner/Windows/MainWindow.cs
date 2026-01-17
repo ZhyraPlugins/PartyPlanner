@@ -1,7 +1,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using Humanizer;
+using PartyPlanner.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +21,10 @@ public sealed class MainWindow : Window, IDisposable
     private DateTime lastUpdate = DateTime.Now;
     private string? displayError = null;
     private Configuration Configuration { get; init; }
+
+    // Caches for string formatting and event filtering
+    private readonly EventStringCache eventStringCache = new();
+    private readonly EventFilterCache eventFilterCache = new();
 
     public MainWindow(Configuration configuration) : base("PartyPlanner", ImGuiWindowFlags.None)
     {
@@ -97,6 +101,9 @@ public sealed class MainWindow : Window, IDisposable
                         tagsByDc[key].Add(tag, false);
                 }
             }
+
+            eventFilterCache.Clear();
+            eventStringCache.Clear();
         }
         catch (Exception ex)
         {
@@ -114,12 +121,14 @@ public sealed class MainWindow : Window, IDisposable
         }
     }
 
+
     public override void Draw()
     {
         if (ImGui.Button("Reload Events"))
             Task.Run(UpdateEvents);
         ImGui.SameLine();
-        ImGui.Text(string.Format("Updated {0}", lastUpdate.Humanize()));
+
+        ImGui.Text(eventStringCache.GetLastUpdateString(lastUpdate));
 
         ImGui.Spacing();
 
@@ -142,7 +151,6 @@ public sealed class MainWindow : Window, IDisposable
                 if (this.Configuration.SelectedRegion.IsNullOrEmpty())
                 {
                     this.Configuration.SelectedRegion = regionName;
-                    this.Configuration.Save();
                 }
 
                 var open = this.Configuration.SelectedRegion.Equals(regionName);
@@ -158,8 +166,11 @@ public sealed class MainWindow : Window, IDisposable
 
                 if (ImGui.BeginTabItem(regionName, ref true_val, flags))
                 {
-                    this.Configuration.SelectedRegion = regionName;
-                    this.Configuration.Save();
+                    if (this.Configuration.SelectedRegion != regionName)
+                    {
+                        this.Configuration.SelectedRegion = regionName;
+                        this.Configuration.Save();
+                    }
                     ImGui.BeginTabBar("datacenters_tab_bar");
                     foreach (var dataCenter in this.partyVerseApi.DataCenters)
                     {
@@ -180,7 +191,6 @@ public sealed class MainWindow : Window, IDisposable
         if (this.Configuration.SelectedDataCenter.IsNullOrEmpty())
         {
             this.Configuration.SelectedDataCenter = dataCenter.Name;
-            this.Configuration.Save();
         }
 
         var open = this.Configuration.SelectedDataCenter == dataCenter.Name;
@@ -196,8 +206,11 @@ public sealed class MainWindow : Window, IDisposable
 
         if (ImGui.BeginTabItem(dataCenter.Name, ref true_val, flags))
         {
-            this.Configuration.SelectedDataCenter = dataCenter.Name;
-            this.Configuration.Save();
+            if (this.Configuration.SelectedDataCenter != dataCenter.Name)
+            {
+                this.Configuration.SelectedDataCenter = dataCenter.Name;
+                this.Configuration.Save();
+            }
             var events = eventsByDc.GetValueOrDefault(dataCenter.Name);
             events ??= [];
 
@@ -205,7 +218,7 @@ public sealed class MainWindow : Window, IDisposable
             tags ??= [];
 
             var i = 0;
-            foreach (var (tag, selected) in tags)
+            foreach (var (tag, selected) in tags.ToList())
             {
                 ImGui.SameLine();
                 if (i % 8 == 0)
@@ -222,91 +235,18 @@ public sealed class MainWindow : Window, IDisposable
                 i += 1;
             }
 
-            foreach (var ev in events)
+            var selectedTags = tags.Where(t => t.Value).Select(t => t.Key).ToList();
+            var filteredEvents = eventFilterCache.GetFiltered(dataCenter.Name, events, selectedTags);
+
+            foreach (var ev in filteredEvents)
             {
-                bool filtered = false;
-                foreach (var (tag, selected) in tags)
-                {
-                    if (selected && !ev.Tags.Contains(tag))
-                    {
-                        filtered = true;
-                        break;
-                    }
-                }
-
-                if (!filtered)
-                {
-                    ImGui.Separator();
-                    ImGui.PushID(ev.Id);
-                    DrawEventRow(ev);
-                    ImGui.PopID();
-                }
-
+                ImGui.Separator();
+                ImGui.PushID(ev.Id);
+                EventRenderer.DrawEventRow(ev, eventStringCache.GetOrCompute(ev));
+                ImGui.PopID();
             }
             ImGui.EndTabItem();
         }
     }
 
-    public static void DrawEventRow(Models.EventType ev)
-    {
-        ImGui.Spacing();
-
-        var greenColor = new Vector4(0.0742f, 0.530f, 0.150f, 1.0f);
-
-        ImGui.TextColored(new Vector4(0.668f, 0.146f, 0.910f, 1.0f), ev.Title);
-        if (ImGui.IsItemClicked())
-        {
-            Util.OpenLink("https://www.partake.gg/events/{0}".Format(ev.Id));
-        }
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.Text("Click to open the partake.gg website.");
-            ImGui.EndTooltip();
-        }
-
-        ImGui.Text("Location:");
-        ImGui.SameLine();
-        var location = string.Format("[{0}] {1}", ev.LocationData.Server.Name, ev.Location);
-        if (ImGui.Selectable(location))
-        {
-            ImGui.SetClipboardText(location);
-        }
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.TextColored(greenColor, location);
-            ImGui.Text("Click to copy");
-            ImGui.EndTooltip();
-        }
-
-        var startsAt = ev.StartsAt.ToLocalTime();
-        var endsAt = ev.EndsAt.ToLocalTime();
-        ImGui.Text(string.Format("Starts {0}", ev.StartsAt.Humanize()));
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.SetTooltip(startsAt.ToString());
-            ImGui.EndTooltip();
-        }
-        ImGui.SameLine();
-        ImGui.Text(string.Format("|  Ends {0}", ev.EndsAt.Humanize()));
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.SetTooltip(endsAt.ToString());
-            ImGui.EndTooltip();
-        }
-        ImGui.TextColored(new Vector4(0.156f, 0.665f, 0.920f, 1.0f),
-           string.Format("From {0} to {1}", ev.StartsAt.ToLocalTime().ToString(), ev.EndsAt.ToLocalTime().ToString()));
-
-        ImGui.TextColored(new Vector4(0.0888f, 0.740f, 0.176f, 1.0f),
-            string.Format("Tags: {0}", string.Join(", ", ev.Tags)));
-
-        if (ImGui.CollapsingHeader("More details"))
-        {
-            ImGui.TextWrapped(ev.Description);
-        }
-    }
 }

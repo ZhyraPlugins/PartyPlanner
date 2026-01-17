@@ -62,10 +62,6 @@ namespace PartyPlanner
                         if (name != "Dev" && worldGroup.Region != 7)
                         {
                             dataCenters.Add((int)worldGroup.RowId, new Models.DataCenterType((int)worldGroup.RowId, worldGroup.Name.ExtractText(), worldGroup.Region));
-                            Plugin.Logger.Info("id: {0}", worldGroup.RowId);
-                            Plugin.Logger.Info("name: {0}", worldGroup.Name);
-                            Plugin.Logger.Info("region: {0}", worldGroup.Region);
-                            Plugin.Logger.Info("---");
                         }
                 }
             }
@@ -76,13 +72,6 @@ namespace PartyPlanner
                      if (server.IsPublic && dataCenters.ContainsKey((int)server.DataCenter.RowId))
                         {
                             servers.Add((int)server.RowId, new Models.ServerType((int)server.RowId, server.Name.ExtractText(), (int)server.DataCenter.RowId));
-                            Plugin.Logger.Info("id: {0}", server.RowId);
-                            Plugin.Logger.Info("region: {0}", server.Region);
-                            Plugin.Logger.Info("name: {0}", server.Name);
-                            Plugin.Logger.Info("DataCenter: {0}", server.DataCenter.RowId);
-                            Plugin.Logger.Info("is public: {0}", server.IsPublic);
-                            Plugin.Logger.Info("DataCenter: {0}", dataCenters[(int)server.DataCenter.RowId].Name);
-                            Plugin.Logger.Info("----");
                         }
                 }
             }

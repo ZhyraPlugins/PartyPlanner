@@ -19,6 +19,11 @@ namespace PartyPlanner.Models
         public string Title { get; set; } = string.Empty;
         [JsonProperty("tags")]
         public string[] Tags { get; set; } = Array.Empty<string>();
+
+        // HashSet version of Tags array for Contains() lookups
+        private HashSet<string>? _tagsSet;
+        [JsonIgnore]
+        public HashSet<string> TagsSet => _tagsSet ??= new HashSet<string>(Tags);
         [JsonProperty("startsAt")]
         public DateTime StartsAt { get; set; }
         [JsonProperty("endsAt")]
