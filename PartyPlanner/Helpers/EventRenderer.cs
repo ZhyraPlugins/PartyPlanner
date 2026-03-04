@@ -54,6 +54,8 @@ public static class EventRenderer
             ImGui.EndTooltip();
         }
 
+        ImGui.Text(string.Format("Attendees: {0}", ev.AttendeeCount));
+
         // Start time (humanized with tooltip showing exact time)
         ImGui.Text(string.Format("Starts {0}", cached.StartsAtHumanized));
         if (ImGui.IsItemHovered())
@@ -81,6 +83,16 @@ public static class EventRenderer
         if (ImGui.CollapsingHeader("More details"))
         {
             ImGui.TextWrapped(ev.Description);
+            if (ev.Attachments.Length > 0)
+            {
+                ImGui.Spacing();
+                ImGui.Text("Attachments:");
+                foreach (var attachment in ev.Attachments)
+                {
+                    if (ImGui.SmallButton(attachment))
+                        Util.OpenLink(attachment);
+                }
+            }
         }
     }
 }

@@ -30,10 +30,30 @@ public sealed class MainWindow : Window, IDisposable
     private CancellationTokenSource _cts = new();
     private readonly object _dataLock = new();
 
+    private readonly Dictionary<string, string> _searchByDc = [];
+
+    private bool _isLoading = false;
+    private string _loadingStatus = string.Empty;
+
     public MainWindow(Configuration configuration) : base("PartyPlanner", ImGuiWindowFlags.None)
     {
         partyVerseApi = new PartyVerseApi();
         this.Configuration = configuration;
+
+        if (this.Configuration.SelectedRegion.IsNullOrEmpty())
+        {
+            var localPlayer = Plugin.ObjectTable.LocalPlayer;
+            if (localPlayer != null)
+            {
+                var homeWorldId = (int)localPlayer.HomeWorld.RowId;
+                if (partyVerseApi.TryGetRegionForWorld(homeWorldId, out var regionIdx, out var dcName))
+                {
+                    this.Configuration.SelectedRegion = PartyVerseApi.RegionList[regionIdx];
+                    this.Configuration.SelectedDataCenter = dcName;
+                    this.Configuration.Save();
+                }
+            }
+        }
 
         SizeCondition = ImGuiCond.FirstUseEver;
         Size = new Vector2(1000, 500);
@@ -64,6 +84,8 @@ public sealed class MainWindow : Window, IDisposable
         lock (_dataLock)
         {
             displayError = null;
+            _isLoading = true;
+            _loadingStatus = "Fetching active events...";
         }
 
         var localEvents = new List<Models.EventType>(50);
@@ -77,6 +99,7 @@ public sealed class MainWindow : Window, IDisposable
         {
             while (queryMore)
             {
+                lock (_dataLock) { _loadingStatus = string.Format("Fetching active events (page {0})...", page + 1); }
                 var newEvents = await partyVerseApi.GetActiveEvents(page);
                 queryMore = newEvents.Count >= 100;
                 localEvents.AddRange(newEvents);
@@ -87,6 +110,7 @@ public sealed class MainWindow : Window, IDisposable
             queryMore = true;
             while (queryMore)
             {
+                lock (_dataLock) { _loadingStatus = string.Format("Fetching events (page {0})...", page + 1); }
                 var newEvents = await partyVerseApi.GetEvents(page);
                 queryMore = newEvents.Count >= 100;
                 localEvents.AddRange(newEvents);
@@ -94,6 +118,8 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             var localLastUpdate = DateTime.Now;
+
+            localEvents = localEvents.DistinctBy(e => e.Id).ToList();
 
             foreach (var ev in localEvents)
             {
@@ -126,12 +152,16 @@ public sealed class MainWindow : Window, IDisposable
                 foreach (var kvp in localTagsByDc) tagsByDc[kvp.Key] = kvp.Value;
                 lastUpdate = localLastUpdate;
             }
+
+            lock (_dataLock) { _isLoading = false; _loadingStatus = string.Empty; }
         }
         catch (Exception ex)
         {
             Plugin.Logger.Error(ex, "error getting events");
             lock (_dataLock)
             {
+                _isLoading = false;
+                _loadingStatus = string.Empty;
                 displayError = string.Format("Error getting events: {0}, {1}", ex.Message, ex.InnerException);
             }
         }
@@ -149,17 +179,26 @@ public sealed class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
+        bool isLoading;
+        string loadingStatus;
+        string? localError;
+        int evCount;
+        lock (_dataLock) { localError = displayError; evCount = partyVerseEvents.Count; isLoading = _isLoading; loadingStatus = _loadingStatus; }
+
+        if (isLoading) ImGui.BeginDisabled();
         if (ImGui.Button("Reload Events"))
             Task.Run(() => UpdateEvents(_cts.Token));
+        if (isLoading) ImGui.EndDisabled();
         ImGui.SameLine();
 
         ImGui.Text(eventStringCache.GetLastUpdateString(lastUpdate));
+        if (isLoading)
+        {
+            ImGui.SameLine();
+            ImGui.TextDisabled(loadingStatus);
+        }
 
         ImGui.Spacing();
-
-        string? localError;
-        int evCount;
-        lock (_dataLock) { localError = displayError; evCount = partyVerseEvents.Count; }
 
         if (localError != null)
         {
@@ -167,7 +206,7 @@ public sealed class MainWindow : Window, IDisposable
         }
         else if (evCount == 0)
         {
-            ImGui.Text("Loading events...");
+            ImGui.Text(isLoading ? loadingStatus : "No events found.");
         }
         else
         {
@@ -255,6 +294,24 @@ public sealed class MainWindow : Window, IDisposable
                 tags = rawTags ?? [];
             }
 
+            if (!_searchByDc.ContainsKey(dataCenter.Name))
+                _searchByDc[dataCenter.Name] = string.Empty;
+            var searchText = _searchByDc[dataCenter.Name];
+            ImGui.SetNextItemWidth(300);
+            if (ImGui.InputText("Search##" + dataCenter.Name, ref searchText, 256))
+                _searchByDc[dataCenter.Name] = searchText;
+
+            ImGui.SameLine();
+            var sortLabels = new[] { "Starts (earliest)", "Starts (latest)", "Ends (earliest)", "Ends (latest)", "Most attendees" };
+            var sortMode = (int)this.Configuration.CurrentSortMode;
+            ImGui.SetNextItemWidth(160);
+            if (ImGui.Combo("Sort##" + dataCenter.Name, ref sortMode, sortLabels, sortLabels.Length))
+            {
+                this.Configuration.CurrentSortMode = (SortMode)sortMode;
+                this.Configuration.Save();
+                eventFilterCache.Clear();
+            }
+
             var i = 0;
             foreach (var (tag, selected) in tags.ToList())
             {
@@ -276,6 +333,23 @@ public sealed class MainWindow : Window, IDisposable
             var selectedTags = tags.Where(t => t.Value).Select(t => t.Key).ToList();
             var filteredEvents = eventFilterCache.GetFiltered(dataCenter.Name, events, selectedTags);
 
+            if (!searchText.IsNullOrEmpty())
+            {
+                filteredEvents = filteredEvents
+                    .Where(ev => ev.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                              || ev.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            filteredEvents = this.Configuration.CurrentSortMode switch
+            {
+                SortMode.StartsAtDesc => filteredEvents.OrderByDescending(e => e.StartsAt).ToList(),
+                SortMode.EndsAtAsc => filteredEvents.OrderBy(e => e.EndsAt).ToList(),
+                SortMode.EndsAtDesc => filteredEvents.OrderByDescending(e => e.EndsAt).ToList(),
+                SortMode.AttendeeCountDesc => filteredEvents.OrderByDescending(e => e.AttendeeCount).ToList(),
+                _ => filteredEvents
+            };
+
             foreach (var ev in filteredEvents)
             {
                 ImGui.Separator();
@@ -283,6 +357,10 @@ public sealed class MainWindow : Window, IDisposable
                 EventRenderer.DrawEventRow(ev, eventStringCache.GetOrCompute(ev));
                 ImGui.PopID();
             }
+
+            if (filteredEvents.Count == 0)
+                ImGui.Text("No events found.");
+
             ImGui.EndTabItem();
         }
     }

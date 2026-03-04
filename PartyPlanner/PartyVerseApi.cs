@@ -171,6 +171,17 @@ namespace PartyPlanner
             return data.Events;
         }
 
+        public bool TryGetRegionForWorld(int worldId, out int regionIndex, out string dcName)
+        {
+            regionIndex = 0;
+            dcName = string.Empty;
+            if (!servers.TryGetValue(worldId, out var server)) return false;
+            if (!dataCenters.TryGetValue(server.DataCenter, out var dc)) return false;
+            regionIndex = dc.Region;
+            dcName = dc.Name;
+            return true;
+        }
+
         public Models.ServerType GetServerType(int id)
         {
             return servers[id];

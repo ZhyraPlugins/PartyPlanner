@@ -1,9 +1,18 @@
-﻿using Dalamud.Configuration;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
 
 namespace PartyPlanner
 {
+    public enum SortMode
+    {
+        StartsAtAsc,
+        StartsAtDesc,
+        EndsAtAsc,
+        EndsAtDesc,
+        AttendeeCountDesc
+    }
+
     [Serializable]
     public class Configuration : IPluginConfiguration
     {
@@ -11,6 +20,7 @@ namespace PartyPlanner
 
         public string SelectedRegion { get; set; } = string.Empty;
         public string SelectedDataCenter { get; set; } = string.Empty;
+        public SortMode CurrentSortMode { get; set; } = SortMode.StartsAtAsc;
 
         [NonSerialized]
         public bool SelectedRegionSet = false;

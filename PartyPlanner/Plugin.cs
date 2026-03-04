@@ -24,6 +24,8 @@ namespace PartyPlanner
         public static IDataManager DataManager { get; private set; } = null!;
         [PluginService]
         public static IPluginLog Logger { get; private set; } = null!;
+        [PluginService]
+        public static IObjectTable ObjectTable { get; private set; } = null!;
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("PartyPlanner");
         private readonly MainWindow mainWindow;
