@@ -1,5 +1,8 @@
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -10,9 +13,14 @@ namespace PartyPlanner.Helpers;
 
 /// <summary>
 /// Downloads and caches attachment images from partake.gg CDN as GPU textures.
+/// Uses ImageSharp to decode (supports WebP, GIF, PNG, JPEG, etc.) then uploads
+/// raw RGBA8 pixels via ITextureProvider.CreateFromRawAsync.
 /// </summary>
 public sealed class AttachmentImageCache : IDisposable
 {
+    // DXGI_FORMAT_R8G8B8A8_UNORM = 28
+    private const int DxgiFormatR8G8B8A8Unorm = 28;
+
     private enum LoadState { Pending, Loaded, Failed }
 
     private sealed class Entry
@@ -57,7 +65,22 @@ public sealed class AttachmentImageCache : IDisposable
         try
         {
             var bytes = await _http.GetByteArrayAsync(url, _cts.Token).ConfigureAwait(false);
-            var tex = await _textureProvider.CreateFromImageAsync(bytes, url, _cts.Token).ConfigureAwait(false);
+
+            // Decode with ImageSharp (supports WebP, GIF, PNG, JPEG, etc.)
+            // and convert to raw RGBA8 pixels for Dalamud's texture API.
+            byte[] rgba;
+            int width, height;
+            using (var image = await Task.Run(() => Image.Load<Rgba32>(bytes), _cts.Token).ConfigureAwait(false))
+            {
+                width = image.Width;
+                height = image.Height;
+                rgba = new byte[width * height * 4];
+                image.CopyPixelDataTo(rgba);
+            }
+
+            var spec = new RawImageSpecification(width, height, DxgiFormatR8G8B8A8Unorm, width * 4);
+            var tex = await _textureProvider.CreateFromRawAsync(spec, (ReadOnlyMemory<byte>)rgba, url, _cts.Token).ConfigureAwait(false);
+
             lock (_lock)
             {
                 entry.Texture = tex;
