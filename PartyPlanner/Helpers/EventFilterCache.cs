@@ -1,66 +1,61 @@
 using PartyPlanner.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace PartyPlanner.Helpers;
 
-/// <summary>
-/// Caches filtered event lists by datacenter and tag selection state.
-/// </summary>
 public class EventFilterCache
 {
-    private readonly Dictionary<string, (List<EventType> filteredEvents, int tagStateHash)> cache = [];
+    private readonly Dictionary<string, (List<EventType> filteredEvents, int stateHash)> cache = [];
 
-    /// <summary>
-    /// Gets events for a datacenter filtered by selected tags.
-    /// Returns cached result if tag selection hasn't changed.
-    /// </summary>
-    public List<EventType> GetFiltered(string dataCenterName, List<EventType> allEvents, List<string> selectedTags)
+    public List<EventType> GetFiltered(
+        string dataCenterName,
+        List<EventType> allEvents,
+        List<string> selectedTags,
+        string searchText,
+        SortMode sortMode)
     {
-        var tagStateHash = ComputeTagStateHash(selectedTags);
+        var stateHash = ComputeStateHash(selectedTags, searchText, sortMode);
 
-        if (cache.TryGetValue(dataCenterName, out var cached) && cached.tagStateHash == tagStateHash)
-        {
+        if (cache.TryGetValue(dataCenterName, out var cached) && cached.stateHash == stateHash)
             return cached.filteredEvents;
-        }
 
-        List<EventType> filteredEvents;
-        if (selectedTags.Count == 0)
-        {
-            filteredEvents = allEvents.ToList();
-        }
-        else
-        {
-            filteredEvents = allEvents.Where(ev =>
-                selectedTags.All(tag => ev.TagsSet.Contains(tag))
-            ).ToList();
-        }
+        IEnumerable<EventType> result = selectedTags.Count == 0
+            ? allEvents
+            : allEvents.Where(ev => selectedTags.All(t => ev.TagsSet.Contains(t)));
 
-        cache[dataCenterName] = (filteredEvents, tagStateHash);
-        return filteredEvents;
+        if (!string.IsNullOrEmpty(searchText))
+            result = result.Where(ev =>
+                ev.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                ev.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+        result = sortMode switch
+        {
+            SortMode.StartsAtDesc      => result.OrderByDescending(e => e.StartsAt),
+            SortMode.EndsAtAsc         => result.OrderBy(e => e.EndsAt),
+            SortMode.EndsAtDesc        => result.OrderByDescending(e => e.EndsAt),
+            SortMode.AttendeeCountDesc => result.OrderByDescending(e => e.AttendeeCount),
+            _                          => result.OrderBy(e => e.StartsAt),
+        };
+
+        var list = result.ToList();
+        cache[dataCenterName] = (list, stateHash);
+        return list;
     }
 
-    /// <summary>
-    /// Computes a hash from the list of selected tags.
-    /// </summary>
-    private static int ComputeTagStateHash(List<string> selectedTags)
+    public void Clear() => cache.Clear();
+
+    private static int ComputeStateHash(List<string> selectedTags, string searchText, SortMode sortMode)
     {
         unchecked
         {
             int hash = 17;
             foreach (var tag in selectedTags.OrderBy(t => t))
-            {
                 hash = hash * 31 + tag.GetHashCode();
-            }
+            hash = hash * 31 + searchText.GetHashCode();
+            hash = hash * 31 + (int)sortMode;
             return hash;
         }
-    }
-
-    /// <summary>
-    /// Clears all cached filtered lists.
-    /// </summary>
-    public void Clear()
-    {
-        cache.Clear();
     }
 }

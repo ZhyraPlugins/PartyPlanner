@@ -7,33 +7,53 @@ namespace PartyPlanner.Tests;
 public class EventFilterCacheTests
 {
     // Minimal copy of EventFilterCache — no Dalamud dependency.
+    private enum SortMode { StartsAtAsc, StartsAtDesc, EndsAtAsc, EndsAtDesc, AttendeeCountDesc }
+
     private sealed class EventFilterCache
     {
         private readonly Dictionary<string, (List<EventType> filtered, int hash)> _cache = [];
 
-        public List<EventType> GetFiltered(string dc, List<EventType> all, List<string> tags)
+        public List<EventType> GetFiltered(string dc, List<EventType> all, List<string> tags,
+            string searchText = "", SortMode sortMode = SortMode.StartsAtAsc)
         {
-            var hash = ComputeHash(tags);
+            var hash = ComputeHash(tags, searchText, sortMode);
             if (_cache.TryGetValue(dc, out var cached) && cached.hash == hash)
                 return cached.filtered;
 
-            var result = tags.Count == 0
-                ? all.ToList()
-                : all.Where(e => tags.All(t => e.TagsSet.Contains(t))).ToList();
+            IEnumerable<EventType> result = tags.Count == 0
+                ? all
+                : all.Where(e => tags.All(t => e.TagsSet.Contains(t)));
 
-            _cache[dc] = (result, hash);
-            return result;
+            if (!string.IsNullOrEmpty(searchText))
+                result = result.Where(e =>
+                    e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    e.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+            result = sortMode switch
+            {
+                SortMode.StartsAtDesc      => result.OrderByDescending(e => e.StartsAt),
+                SortMode.EndsAtAsc         => result.OrderBy(e => e.EndsAt),
+                SortMode.EndsAtDesc        => result.OrderByDescending(e => e.EndsAt),
+                SortMode.AttendeeCountDesc => result.OrderByDescending(e => e.AttendeeCount),
+                _                          => result.OrderBy(e => e.StartsAt),
+            };
+
+            var list = result.ToList();
+            _cache[dc] = (list, hash);
+            return list;
         }
 
         public void Clear() => _cache.Clear();
 
-        private static int ComputeHash(List<string> tags)
+        private static int ComputeHash(List<string> tags, string searchText, SortMode sortMode)
         {
             unchecked
             {
                 int h = 17;
                 foreach (var t in tags.OrderBy(x => x))
                     h = h * 31 + t.GetHashCode();
+                h = h * 31 + searchText.GetHashCode();
+                h = h * 31 + (int)sortMode;
                 return h;
             }
         }

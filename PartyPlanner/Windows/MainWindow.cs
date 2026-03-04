@@ -32,6 +32,8 @@ public sealed class MainWindow : Window, IDisposable
 
     private readonly Dictionary<string, string> _searchByDc = [];
 
+    private static readonly string[] SortLabels = ["Starts (earliest)", "Starts (latest)", "Ends (earliest)", "Ends (latest)", "Most attendees"];
+
     private bool _isLoading = false;
     private string _loadingStatus = string.Empty;
 
@@ -338,10 +340,9 @@ public sealed class MainWindow : Window, IDisposable
                 _searchByDc[dataCenter.Name] = searchText;
 
             ImGui.SameLine();
-            var sortLabels = new[] { "Starts (earliest)", "Starts (latest)", "Ends (earliest)", "Ends (latest)", "Most attendees" };
             var sortMode = (int)this.Configuration.CurrentSortMode;
             ImGui.SetNextItemWidth(160);
-            if (ImGui.Combo("Sort##" + dataCenter.Name, ref sortMode, sortLabels, sortLabels.Length))
+            if (ImGui.Combo("Sort##" + dataCenter.Name, ref sortMode, SortLabels, SortLabels.Length))
             {
                 this.Configuration.CurrentSortMode = (SortMode)sortMode;
                 this.Configuration.Save();
@@ -367,24 +368,7 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             var selectedTags = tags.Where(t => t.Value).Select(t => t.Key).ToList();
-            var filteredEvents = eventFilterCache.GetFiltered(dataCenter.Name, events, selectedTags);
-
-            if (!searchText.IsNullOrEmpty())
-            {
-                filteredEvents = filteredEvents
-                    .Where(ev => ev.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)
-                              || ev.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            filteredEvents = this.Configuration.CurrentSortMode switch
-            {
-                SortMode.StartsAtDesc => filteredEvents.OrderByDescending(e => e.StartsAt).ToList(),
-                SortMode.EndsAtAsc => filteredEvents.OrderBy(e => e.EndsAt).ToList(),
-                SortMode.EndsAtDesc => filteredEvents.OrderByDescending(e => e.EndsAt).ToList(),
-                SortMode.AttendeeCountDesc => filteredEvents.OrderByDescending(e => e.AttendeeCount).ToList(),
-                _ => filteredEvents
-            };
+            var filteredEvents = eventFilterCache.GetFiltered(dataCenter.Name, events, selectedTags, searchText, this.Configuration.CurrentSortMode);
 
             foreach (var ev in filteredEvents)
             {
