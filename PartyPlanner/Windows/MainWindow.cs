@@ -205,7 +205,8 @@ public sealed class MainWindow : Window, IDisposable
         string loadingStatus;
         string? localError;
         int evCount;
-        lock (_dataLock) { localError = displayError; evCount = partyVerseEvents.Count; isLoading = _isLoading; loadingStatus = _loadingStatus; }
+        HashSet<string> dcsWithEvents;
+        lock (_dataLock) { localError = displayError; evCount = partyVerseEvents.Count; isLoading = _isLoading; loadingStatus = _loadingStatus; dcsWithEvents = eventsByDc.Keys.ToHashSet(); }
 
         if (isLoading) ImGui.BeginDisabled();
         if (ImGui.Button("Reload Events"))
@@ -238,6 +239,10 @@ public sealed class MainWindow : Window, IDisposable
                 {
                     var regionName = PartyVerseApi.RegionList[location];
 
+                    var regionHasEvents = partyVerseApi.DataCenters.Values
+                        .Any(dc => dc.Region == location && dcsWithEvents.Contains(dc.Name));
+                    if (!regionHasEvents) continue;
+
                     if (this.Configuration.SelectedRegion.IsNullOrEmpty())
                     {
                         this.Configuration.SelectedRegion = regionName;
@@ -265,7 +270,7 @@ public sealed class MainWindow : Window, IDisposable
                         {
                             foreach (var dataCenter in this.partyVerseApi.DataCenters)
                             {
-                                if (dataCenter.Value.Region == location)
+                                if (dataCenter.Value.Region == location && dcsWithEvents.Contains(dataCenter.Value.Name))
                                 {
                                     DrawDataCenter(dataCenter.Value);
                                 }
