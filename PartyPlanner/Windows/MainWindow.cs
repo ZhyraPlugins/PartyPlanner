@@ -23,9 +23,10 @@ public sealed class MainWindow : Window, IDisposable
     private string? displayError = null;
     private Configuration Configuration { get; init; }
 
-    // Caches for string formatting and event filtering
+    // Caches for string formatting, event filtering, and attachment images
     private readonly EventStringCache eventStringCache = new();
     private readonly EventFilterCache eventFilterCache = new();
+    private readonly AttachmentImageCache attachmentImageCache = new(Plugin.TextureProvider);
 
     private CancellationTokenSource _cts = new();
     private readonly object _dataLock = new();
@@ -64,6 +65,7 @@ public sealed class MainWindow : Window, IDisposable
         _cts.Cancel();
         _cts.Dispose();
         partyVerseApi.Dispose();
+        attachmentImageCache.Dispose();
     }
 
     public async Task UpdateEvents(CancellationToken ct = default)
@@ -374,7 +376,7 @@ public sealed class MainWindow : Window, IDisposable
             {
                 ImGui.Separator();
                 ImGui.PushID(ev.Id);
-                EventRenderer.DrawEventRow(ev, eventStringCache.GetOrCompute(ev));
+                EventRenderer.DrawEventRow(ev, eventStringCache.GetOrCompute(ev), attachmentImageCache);
                 ImGui.PopID();
             }
 
