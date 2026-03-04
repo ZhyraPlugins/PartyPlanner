@@ -1,6 +1,8 @@
 ﻿using Dalamud.Data;
 using Dalamud.Game.Command;
 using Dalamud.Interface;
+using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -28,6 +30,7 @@ namespace PartyPlanner
         public static IObjectTable ObjectTable { get; private set; } = null!;
         [PluginService]
         public static ITextureProvider TextureProvider { get; private set; } = null!;
+        public static IFontHandle TitleFontHandle { get; private set; } = null!;
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("PartyPlanner");
         private readonly MainWindow mainWindow;
@@ -37,6 +40,15 @@ namespace PartyPlanner
         {
             this.Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(PluginInterface);
+
+            var uiBuilder = PluginInterface.UiBuilder;
+            var defaultSpec = (SingleFontSpec)uiBuilder.DefaultFontSpec;
+            var titleFontSpec = new SingleFontSpec
+            {
+                FontId = defaultSpec.FontId,
+                SizePx = uiBuilder.FontDefaultSizePx * 1.3f,
+            };
+            TitleFontHandle = titleFontSpec.CreateFontHandle(uiBuilder.FontAtlas);
 
             PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
             PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
@@ -73,6 +85,7 @@ namespace PartyPlanner
 
             mainWindow.Dispose();
             configWindow.Dispose();
+            TitleFontHandle.Dispose();
 
             CommandManager.RemoveHandler(commandName);
         }

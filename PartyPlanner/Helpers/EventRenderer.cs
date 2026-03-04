@@ -30,9 +30,10 @@ public static class EventRenderer
     {
         ImGui.Spacing();
 
-        // Event title (clickable, opens partake.gg)
+        // Event title (clickable, opens partake.gg) — rendered at 1.3× size
         var hasTitle = !string.IsNullOrEmpty(ev.Title);
-        ImGui.TextColored(hasTitle ? ColorPurple : ColorGray, hasTitle ? ev.Title : "(No title)");
+        using (Plugin.TitleFontHandle.Push())
+            ImGui.TextColored(hasTitle ? ColorPurple : ColorGray, hasTitle ? ev.Title : "(No title)");
         if (ImGui.IsItemClicked())
         {
             Util.OpenLink("https://www.partake.gg/events/{0}".Format(ev.Id));
