@@ -40,8 +40,6 @@ public sealed class MainWindow : Window, IDisposable
         partyVerseApi = new PartyVerseApi();
         this.Configuration = configuration;
 
-        TryAutoSelectHomeWorld();
-
         SizeCondition = ImGuiCond.FirstUseEver;
         Size = new Vector2(1000, 500);
 
