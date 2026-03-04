@@ -21,6 +21,7 @@ namespace PartyPlanner
         public string SelectedRegion { get; set; } = string.Empty;
         public string SelectedDataCenter { get; set; } = string.Empty;
         public SortMode CurrentSortMode { get; set; } = SortMode.StartsAtAsc;
+        public bool HomeWorldAutoSelected { get; set; } = false;
 
         [NonSerialized]
         public bool SelectedRegionSet = false;

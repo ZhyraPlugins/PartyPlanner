@@ -184,17 +184,28 @@ public sealed class MainWindow : Window, IDisposable
 
     private void TryAutoSelectHomeWorld()
     {
-        if (!this.Configuration.SelectedRegion.IsNullOrEmpty()) return;
+        if (this.Configuration.HomeWorldAutoSelected) return;
         var localPlayer = Plugin.ObjectTable.LocalPlayer;
-        if (localPlayer == null) return;
+        if (localPlayer == null)
+        {
+            Plugin.Logger.Debug("TryAutoSelectHomeWorld: LocalPlayer is null, skipping");
+            return;
+        }
         var homeWorldId = (int)localPlayer.HomeWorld.RowId;
+        Plugin.Logger.Debug("TryAutoSelectHomeWorld: homeWorldId={0}", homeWorldId);
         if (partyVerseApi.TryGetRegionForWorld(homeWorldId, out var regionIdx, out var dcName))
         {
+            Plugin.Logger.Debug("TryAutoSelectHomeWorld: resolved region={0} dc={1}", PartyVerseApi.RegionList[regionIdx], dcName);
             this.Configuration.SelectedRegion = PartyVerseApi.RegionList[regionIdx];
             this.Configuration.SelectedDataCenter = dcName;
             this.Configuration.SelectedRegionSet = false;
             this.Configuration.SelectedDataCenterSet = false;
+            this.Configuration.HomeWorldAutoSelected = true;
             this.Configuration.Save();
+        }
+        else
+        {
+            Plugin.Logger.Warning("TryAutoSelectHomeWorld: could not resolve worldId={0} to a known region/DC", homeWorldId);
         }
     }
 
