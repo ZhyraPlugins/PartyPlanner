@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Authors>Zhyra</Authors>
 		<Company>ZhyraPlugins</Company>
-		<Version>1.7.0</Version>
+		<Version>1.7.1</Version>
 		<Description>partake.gg, directly on your client!</Description>
 		<Copyright></Copyright>
 		<PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>

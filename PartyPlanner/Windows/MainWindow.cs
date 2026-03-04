@@ -40,20 +40,7 @@ public sealed class MainWindow : Window, IDisposable
         partyVerseApi = new PartyVerseApi();
         this.Configuration = configuration;
 
-        if (this.Configuration.SelectedRegion.IsNullOrEmpty())
-        {
-            var localPlayer = Plugin.ObjectTable.LocalPlayer;
-            if (localPlayer != null)
-            {
-                var homeWorldId = (int)localPlayer.HomeWorld.RowId;
-                if (partyVerseApi.TryGetRegionForWorld(homeWorldId, out var regionIdx, out var dcName))
-                {
-                    this.Configuration.SelectedRegion = PartyVerseApi.RegionList[regionIdx];
-                    this.Configuration.SelectedDataCenter = dcName;
-                    this.Configuration.Save();
-                }
-            }
-        }
+        TryAutoSelectHomeWorld();
 
         SizeCondition = ImGuiCond.FirstUseEver;
         Size = new Vector2(1000, 500);
@@ -121,6 +108,24 @@ public sealed class MainWindow : Window, IDisposable
 
             localEvents = localEvents.DistinctBy(e => e.Id).ToList();
 
+            var now = DateTime.UtcNow;
+            var cutoff = now.AddMonths(1);
+
+            // Drop events that have already ended or start more than 1 month away.
+            localEvents = localEvents
+                .Where(e => e.EndsAt >= now && e.StartsAt <= cutoff)
+                .ToList();
+
+            // Per venue (server + location), keep only the nearest upcoming/active event.
+            localEvents = localEvents
+                .GroupBy(e => (
+                    dc: e.LocationData?.DataCenter?.Name ?? string.Empty,
+                    server: e.LocationData?.Server?.Name ?? string.Empty,
+                    loc: e.Location
+                ))
+                .Select(g => g.OrderBy(e => e.StartsAt).First())
+                .ToList();
+
             foreach (var ev in localEvents)
             {
                 if (ev.LocationData == null || ev.LocationData.DataCenter == null) continue;
@@ -170,9 +175,26 @@ public sealed class MainWindow : Window, IDisposable
     public override void OnOpen()
     {
         base.OnOpen();
+        TryAutoSelectHomeWorld();
         if (lastUpdate.AddMinutes(5).CompareTo(DateTime.Now) <= 0)
         {
             Task.Run(() => UpdateEvents(_cts.Token));
+        }
+    }
+
+    private void TryAutoSelectHomeWorld()
+    {
+        if (!this.Configuration.SelectedRegion.IsNullOrEmpty()) return;
+        var localPlayer = Plugin.ObjectTable.LocalPlayer;
+        if (localPlayer == null) return;
+        var homeWorldId = (int)localPlayer.HomeWorld.RowId;
+        if (partyVerseApi.TryGetRegionForWorld(homeWorldId, out var regionIdx, out var dcName))
+        {
+            this.Configuration.SelectedRegion = PartyVerseApi.RegionList[regionIdx];
+            this.Configuration.SelectedDataCenter = dcName;
+            this.Configuration.SelectedRegionSet = false;
+            this.Configuration.SelectedDataCenterSet = false;
+            this.Configuration.Save();
         }
     }
 
