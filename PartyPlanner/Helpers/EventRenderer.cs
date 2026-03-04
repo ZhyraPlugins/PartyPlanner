@@ -58,9 +58,7 @@ public static class EventRenderer
         ImGui.Text(string.Format("Starts {0}", cached.StartsAtHumanized));
         if (ImGui.IsItemHovered())
         {
-            ImGui.BeginTooltip();
             ImGui.SetTooltip(cached.StartsAtLocal);
-            ImGui.EndTooltip();
         }
         ImGui.SameLine();
 
@@ -68,9 +66,7 @@ public static class EventRenderer
         ImGui.Text(string.Format("|  Ends {0}", cached.EndsAtHumanized));
         if (ImGui.IsItemHovered())
         {
-            ImGui.BeginTooltip();
             ImGui.SetTooltip(cached.EndsAtLocal);
-            ImGui.EndTooltip();
         }
 
         // Full time range

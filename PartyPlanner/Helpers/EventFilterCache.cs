@@ -27,7 +27,7 @@ public class EventFilterCache
         List<EventType> filteredEvents;
         if (selectedTags.Count == 0)
         {
-            filteredEvents = allEvents;
+            filteredEvents = allEvents.ToList();
         }
         else
         {
@@ -36,7 +36,7 @@ public class EventFilterCache
             ).ToList();
         }
 
-        cache[dataCenterName] = (filteredEvents.ToList(), tagStateHash);
+        cache[dataCenterName] = (filteredEvents, tagStateHash);
         return filteredEvents;
     }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +17,7 @@ using PartyPlanner.Models;
 
 namespace PartyPlanner
 {
-    public partial class PartyVerseApi
+    public partial class PartyVerseApi : IDisposable
     {
         private readonly GraphQLHttpClient graphQL;
 
@@ -27,6 +27,30 @@ namespace PartyPlanner
         public static readonly List<string> RegionList = ["Unknown", "Japan", "North America", "Europe", "Oceania"];
 
         public Dictionary<int, DataCenterType> DataCenters { get => dataCenters; set => dataCenters = value; }
+
+        private const string EventFields = @"
+    id,
+    title,
+    locationId,
+    attendeeCount,
+    startsAt,
+    endsAt,
+    location,
+    tags,
+    description(type: PLAIN_TEXT)
+    attendeeCount
+    attachments
+    locationData {
+      server {
+        id
+        name
+        dataCenterId
+      }
+      dataCenter {
+        id
+        name
+      }
+    }";
 
         public PartyVerseApi()
         {
@@ -83,36 +107,19 @@ namespace PartyPlanner
             {
                 Query = @"
                 {
-                      events(game: ""final-fantasy-xiv"", sortBy: STARTS_AT, limit: 100, offset: " + page * 100 + @") {
-                        id,
-                        title,
-                        locationId,
-                        ageRating,
-                        attendeeCount,
-                        startsAt,
-                        endsAt,
-                        location,
-                        tags,
-                        description(type: PLAIN_TEXT)
-                        attendeeCount
-                        attachments
-                        locationData {
-                          server {
-                            id
-                            name
-                            dataCenterId
-                          }
-                          dataCenter {
-                            id
-                            name
-                          }
-                        }
+                      events(game: ""final-fantasy-xiv"", sortBy: STARTS_AT, limit: 100, offset: " + page * 100 + @") {" + EventFields + @"
                      }
                 }"
             };
 
             var res = await graphQL.SendQueryAsync<Models.EventsResponseType>(heroRequest);
+            if (res.Errors != null && res.Errors.Length > 0)
+            {
+                Plugin.Logger.Error("GraphQL errors: {0}", string.Join(", ", res.Errors.Select(e => e.Message)));
+                return [];
+            }
             var data = res.Data;
+            if (data == null) return [];
 
             foreach (var ev in data.Events)
             {
@@ -124,7 +131,7 @@ namespace PartyPlanner
                 ev.Title = title.Trim();
             }
 
-            return res.Data.Events;
+            return data.Events;
         }
 
         public async Task<List<Models.EventType>> GetActiveEvents(int page)
@@ -137,36 +144,19 @@ namespace PartyPlanner
                       events(game: ""final-fantasy-xiv"", sortBy: STARTS_AT, limit: 100, offset: " + page * 100 + @",
                             startsBetween: { end: """ + nowDate.ToString("o") + @"""},
                             endsBetween: { start: """ + nowDate.ToString("o") + @""" }
-                        ) {
-                        id,
-                        title,
-                        locationId,
-                        ageRating,
-                        attendeeCount,
-                        startsAt,
-                        endsAt,
-                        location,
-                        tags,
-                        description(type: PLAIN_TEXT)
-                        attendeeCount
-                        attachments
-                        locationData {
-                          server {
-                            id
-                            name
-                            dataCenterId
-                          }
-                          dataCenter {
-                            id
-                            name
-                          }
-                        }
+                        ) {" + EventFields + @"
                      }
                 }"
             };
 
             var res = await graphQL.SendQueryAsync<Models.EventsResponseType>(heroRequest);
+            if (res.Errors != null && res.Errors.Length > 0)
+            {
+                Plugin.Logger.Error("GraphQL errors: {0}", string.Join(", ", res.Errors.Select(e => e.Message)));
+                return [];
+            }
             var data = res.Data;
+            if (data == null) return [];
 
             foreach (var ev in data.Events)
             {
@@ -178,7 +168,7 @@ namespace PartyPlanner
                 ev.Title = title.Trim();
             }
 
-            return res.Data.Events;
+            return data.Events;
         }
 
         public Models.ServerType GetServerType(int id)
@@ -189,6 +179,11 @@ namespace PartyPlanner
         public Models.DataCenterType GetDataCenterType(int id)
         {
             return dataCenters[id];
+        }
+
+        public void Dispose()
+        {
+            graphQL.Dispose();
         }
 
         [GeneratedRegex(@"[^\u0000-\u007F]+")]

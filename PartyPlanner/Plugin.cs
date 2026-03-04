@@ -63,9 +63,12 @@ namespace PartyPlanner
 
         public void Dispose()
         {
+            PluginInterface.UiBuilder.Draw -= DrawUI;
+
             this.WindowSystem.RemoveAllWindows();
 
             mainWindow.Dispose();
+            configWindow.Dispose();
 
             CommandManager.RemoveHandler(commandName);
         }

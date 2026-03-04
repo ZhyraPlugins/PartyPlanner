@@ -38,7 +38,9 @@ public class EventStringCache
                 StartsAtLocal = ev.StartsAt.ToLocalTime().ToString(),
                 EndsAtLocal = ev.EndsAt.ToLocalTime().ToString(),
                 FormattedTags = string.Join(", ", ev.Tags),
-                Location = string.Format("[{0}] {1}", ev.LocationData.Server.Name, ev.Location)
+                Location = ev.LocationData?.Server != null
+                    ? string.Format("[{0}] {1}", ev.LocationData.Server.Name, ev.Location)
+                    : ev.Location
             };
             cache[ev.Id] = cached;
         }

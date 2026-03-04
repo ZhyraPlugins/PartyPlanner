@@ -11,8 +11,6 @@ namespace PartyPlanner.Models
         public string Description { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public int Id { get; set; }
-        public string LongSecription { get; set; } = string.Empty;
-
-        // todo: do this
+        public string LongDescription { get; set; } = string.Empty;
     }
 }

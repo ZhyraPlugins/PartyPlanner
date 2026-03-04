@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -26,6 +27,9 @@ public sealed class MainWindow : Window, IDisposable
     private readonly EventStringCache eventStringCache = new();
     private readonly EventFilterCache eventFilterCache = new();
 
+    private CancellationTokenSource _cts = new();
+    private readonly object _dataLock = new();
+
     public MainWindow(Configuration configuration) : base("PartyPlanner", ImGuiWindowFlags.None)
     {
         partyVerseApi = new PartyVerseApi();
@@ -45,19 +49,26 @@ public sealed class MainWindow : Window, IDisposable
             Plugin.Logger.Error(e, "error loading assembly");
         }
 
-        Task.Run(UpdateEvents);
+        Task.Run(() => UpdateEvents(_cts.Token));
     }
 
     public void Dispose()
     {
+        _cts.Cancel();
+        _cts.Dispose();
+        partyVerseApi.Dispose();
     }
 
-    public async void UpdateEvents()
+    public async Task UpdateEvents(CancellationToken ct = default)
     {
-        displayError = null;
-        partyVerseEvents.Clear();
-        eventsByDc.Clear();
-        tagsByDc.Clear();
+        lock (_dataLock)
+        {
+            displayError = null;
+        }
+
+        var localEvents = new List<Models.EventType>(50);
+        var localByDc = new Dictionary<string, List<Models.EventType>>();
+        var localTagsByDc = new Dictionary<string, SortedDictionary<string, bool>>();
 
         int page = 0;
         bool queryMore = true;
@@ -68,7 +79,7 @@ public sealed class MainWindow : Window, IDisposable
             {
                 var newEvents = await partyVerseApi.GetActiveEvents(page);
                 queryMore = newEvents.Count >= 100;
-                partyVerseEvents.AddRange(newEvents);
+                localEvents.AddRange(newEvents);
                 page += 1;
             }
 
@@ -78,37 +89,51 @@ public sealed class MainWindow : Window, IDisposable
             {
                 var newEvents = await partyVerseApi.GetEvents(page);
                 queryMore = newEvents.Count >= 100;
-                partyVerseEvents.AddRange(newEvents);
+                localEvents.AddRange(newEvents);
                 page += 1;
             }
 
-            lastUpdate = DateTime.Now;
+            var localLastUpdate = DateTime.Now;
 
-            foreach (var ev in partyVerseEvents)
+            foreach (var ev in localEvents)
             {
                 if (ev.LocationData == null || ev.LocationData.DataCenter == null) continue;
                 var key = ev.LocationData.DataCenter.Name;
 
-                if (!eventsByDc.ContainsKey(key))
-                    eventsByDc.Add(key, []);
-                eventsByDc[key].Add(ev);
-                if (!tagsByDc.ContainsKey(key))
-                    tagsByDc.Add(key, []);
+                if (!localByDc.ContainsKey(key))
+                    localByDc.Add(key, []);
+                localByDc[key].Add(ev);
+                if (!localTagsByDc.ContainsKey(key))
+                    localTagsByDc.Add(key, []);
 
                 foreach (var tag in ev.Tags)
                 {
-                    if (!tagsByDc[key].ContainsKey(tag))
-                        tagsByDc[key].Add(tag, false);
+                    if (!localTagsByDc[key].ContainsKey(tag))
+                        localTagsByDc[key].Add(tag, false);
                 }
             }
 
             eventFilterCache.Clear();
             eventStringCache.Clear();
+
+            lock (_dataLock)
+            {
+                partyVerseEvents.Clear();
+                partyVerseEvents.AddRange(localEvents);
+                eventsByDc.Clear();
+                foreach (var kvp in localByDc) eventsByDc[kvp.Key] = kvp.Value;
+                tagsByDc.Clear();
+                foreach (var kvp in localTagsByDc) tagsByDc[kvp.Key] = kvp.Value;
+                lastUpdate = localLastUpdate;
+            }
         }
         catch (Exception ex)
         {
             Plugin.Logger.Error(ex, "error getting events");
-            displayError = string.Format("Error getting events: {0}, {1}", ex.Message, ex.InnerException);
+            lock (_dataLock)
+            {
+                displayError = string.Format("Error getting events: {0}, {1}", ex.Message, ex.InnerException);
+            }
         }
     }
 
@@ -117,7 +142,7 @@ public sealed class MainWindow : Window, IDisposable
         base.OnOpen();
         if (lastUpdate.AddMinutes(5).CompareTo(DateTime.Now) <= 0)
         {
-            Task.Run(UpdateEvents);
+            Task.Run(() => UpdateEvents(_cts.Token));
         }
     }
 
@@ -125,63 +150,71 @@ public sealed class MainWindow : Window, IDisposable
     public override void Draw()
     {
         if (ImGui.Button("Reload Events"))
-            Task.Run(UpdateEvents);
+            Task.Run(() => UpdateEvents(_cts.Token));
         ImGui.SameLine();
 
         ImGui.Text(eventStringCache.GetLastUpdateString(lastUpdate));
 
         ImGui.Spacing();
 
-        if (displayError != null)
+        string? localError;
+        int evCount;
+        lock (_dataLock) { localError = displayError; evCount = partyVerseEvents.Count; }
+
+        if (localError != null)
         {
-            ImGui.Text(displayError);
+            ImGui.Text(localError);
         }
-        else if (partyVerseEvents == null || partyVerseEvents.Count == 0)
+        else if (evCount == 0)
         {
             ImGui.Text("Loading events...");
         }
         else
         {
-            ImGui.BeginTabBar("region_tab_bar");
-
-            for (var location = 1; location < PartyVerseApi.RegionList.Count; location++)
+            if (ImGui.BeginTabBar("region_tab_bar"))
             {
-                var regionName = PartyVerseApi.RegionList[location];
-
-                if (this.Configuration.SelectedRegion.IsNullOrEmpty())
+                for (var location = 1; location < PartyVerseApi.RegionList.Count; location++)
                 {
-                    this.Configuration.SelectedRegion = regionName;
-                }
+                    var regionName = PartyVerseApi.RegionList[location];
 
-                var open = this.Configuration.SelectedRegion.Equals(regionName);
-                var true_val = true;
-
-                var flags = ImGuiTabItemFlags.None;
-
-                if (!this.Configuration.SelectedRegionSet && open)
-                {
-                    flags |= ImGuiTabItemFlags.SetSelected;
-                    this.Configuration.SelectedRegionSet = true;
-                }
-
-                if (ImGui.BeginTabItem(regionName, ref true_val, flags))
-                {
-                    if (this.Configuration.SelectedRegion != regionName)
+                    if (this.Configuration.SelectedRegion.IsNullOrEmpty())
                     {
                         this.Configuration.SelectedRegion = regionName;
-                        this.Configuration.Save();
                     }
-                    ImGui.BeginTabBar("datacenters_tab_bar");
-                    foreach (var dataCenter in this.partyVerseApi.DataCenters)
+
+                    var open = this.Configuration.SelectedRegion.Equals(regionName);
+                    var true_val = true;
+
+                    var flags = ImGuiTabItemFlags.None;
+
+                    if (!this.Configuration.SelectedRegionSet && open)
                     {
-                        if (dataCenter.Value.Region == location)
-                        {
-                            DrawDataCenter(dataCenter.Value);
-                        }
+                        flags |= ImGuiTabItemFlags.SetSelected;
+                        this.Configuration.SelectedRegionSet = true;
                     }
-                    ImGui.EndTabBar();
-                    ImGui.EndTabItem();
+
+                    if (ImGui.BeginTabItem(regionName, ref true_val, flags))
+                    {
+                        if (this.Configuration.SelectedRegion != regionName)
+                        {
+                            this.Configuration.SelectedRegion = regionName;
+                            this.Configuration.Save();
+                        }
+                        if (ImGui.BeginTabBar("datacenters_tab_bar"))
+                        {
+                            foreach (var dataCenter in this.partyVerseApi.DataCenters)
+                            {
+                                if (dataCenter.Value.Region == location)
+                                {
+                                    DrawDataCenter(dataCenter.Value);
+                                }
+                            }
+                            ImGui.EndTabBar();
+                        }
+                        ImGui.EndTabItem();
+                    }
                 }
+                ImGui.EndTabBar();
             }
         }
     }
@@ -198,10 +231,10 @@ public sealed class MainWindow : Window, IDisposable
 
         var flags = ImGuiTabItemFlags.None;
 
-        if (!this.Configuration.SelectedRegionSet && open)
+        if (!this.Configuration.SelectedDataCenterSet && open)
         {
             flags |= ImGuiTabItemFlags.SetSelected;
-            this.Configuration.SelectedRegionSet = true;
+            this.Configuration.SelectedDataCenterSet = true;
         }
 
         if (ImGui.BeginTabItem(dataCenter.Name, ref true_val, flags))
@@ -211,11 +244,16 @@ public sealed class MainWindow : Window, IDisposable
                 this.Configuration.SelectedDataCenter = dataCenter.Name;
                 this.Configuration.Save();
             }
-            var events = eventsByDc.GetValueOrDefault(dataCenter.Name);
-            events ??= [];
 
-            var tags = tagsByDc.GetValueOrDefault(dataCenter.Name);
-            tags ??= [];
+            List<Models.EventType> events;
+            SortedDictionary<string, bool> tags;
+            lock (_dataLock)
+            {
+                var rawEvents = eventsByDc.GetValueOrDefault(dataCenter.Name);
+                events = rawEvents != null ? new List<Models.EventType>(rawEvents) : [];
+                var rawTags = tagsByDc.GetValueOrDefault(dataCenter.Name);
+                tags = rawTags ?? [];
+            }
 
             var i = 0;
             foreach (var (tag, selected) in tags.ToList())

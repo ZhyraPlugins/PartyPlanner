@@ -17,8 +17,13 @@ namespace PartyPlanner.Models
         public string Description { get; set; } = string.Empty;
         [JsonProperty("title")]
         public string Title { get; set; } = string.Empty;
+        private string[] _tags = Array.Empty<string>();
         [JsonProperty("tags")]
-        public string[] Tags { get; set; } = Array.Empty<string>();
+        public string[] Tags
+        {
+            get => _tags;
+            set { _tags = value; _tagsSet = null; }
+        }
 
         // HashSet version of Tags array for Contains() lookups
         private HashSet<string>? _tagsSet;
